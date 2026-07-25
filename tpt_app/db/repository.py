@@ -3,6 +3,12 @@
 Le dossier est sérialisé en JSON dans une colonne unique : le schéma applicatif
 peut évoluer sans migration, et les colonnes indexées (nom, matricule, mois,
 régime) suffisent à la recherche de l'écran « Dossiers ».
+
+**La base est strictement personnelle** : elle vit dans le profil Windows de
+l'utilisateur, jamais sur un partage réseau. SQLite ne supporte pas de manière
+fiable le verrouillage sur SMB, et deux personnes écrivant dans le même fichier
+finiraient par le corrompre. Chacun a donc son propre historique ; le partage
+d'un dossier passe par l'export puis l'import d'un classeur.
 """
 
 from __future__ import annotations
@@ -122,8 +128,18 @@ class DepotDossiers:
         self.chemin = Path(chemin) if chemin else Path("app.db")
         if self.chemin.parent != Path(""):
             self.chemin.parent.mkdir(parents=True, exist_ok=True)
-        self.connexion = sqlite3.connect(str(self.chemin))
+        # ``timeout`` fait patienter plutôt qu'échouer si la base est
+        # momentanément verrouillée (antivirus, seconde instance ouverte par la
+        # même personne). Le journal WAL autorise lectures et écriture simultanées.
+        self.connexion = sqlite3.connect(str(self.chemin), timeout=15.0)
         self.connexion.row_factory = sqlite3.Row
+        try:
+            self.connexion.execute("PRAGMA journal_mode=WAL")
+            self.connexion.execute("PRAGMA synchronous=FULL")
+        except sqlite3.DatabaseError:
+            # Certains systèmes de fichiers réseau refusent le WAL : on reste
+            # alors sur le journal par défaut, moins concurrent mais valide.
+            pass
         self.connexion.executescript(SCHEMA)
         self.connexion.commit()
 

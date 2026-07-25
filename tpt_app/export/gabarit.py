@@ -71,6 +71,27 @@ def _fusions_du_modele(feuille) -> list[CellRange]:
     ]
 
 
+def uniformiser_lignes_periode(feuille, nb_lignes: int) -> None:
+    """Aligne toutes les lignes de période sur la mise en forme de la ligne modèle.
+
+    Le gabarit fourni comporte deux irrégularités sur sa 2ème ligne de période :
+    ``G27`` a conservé la police par défaut au lieu de l'Arial 10 gras du reste de
+    la colonne « Autres primes », et ``B27``/``C27`` ont perdu leurs bordures
+    horizontales. Elles se voient sur toute attestation d'au moins deux périodes.
+
+    Les lignes 26 à l'avant-dernière reçoivent donc le style de la ligne modèle ;
+    la ligne de clôture garde le sien, elle seule portant la bordure inférieure.
+    """
+    styles = {
+        colonne: feuille.cell(row=LIGNE_MODELE, column=colonne)._style
+        for colonne in range(2, 9)          # colonnes B à H
+    }
+    derniere = LIGNE_PREMIERE_PERIODE + max(nb_lignes, NB_LIGNES_MODELE) - 1
+    for ligne in range(LIGNE_PREMIERE_PERIODE, derniere):
+        for colonne, style in styles.items():
+            feuille.cell(row=ligne, column=colonne)._style = copy(style)
+
+
 def etendre_tableau_periodes(feuille, nb_lignes: int) -> int:
     """Porte le tableau des périodes à ``nb_lignes`` lignes.
 
@@ -132,3 +153,15 @@ def decaler(coordonnee: str, supplement: int) -> str:
 def ligne_periode(index: int) -> int:
     """Ligne de la période d'indice ``index`` (0-based) dans la feuille étendue."""
     return LIGNE_PREMIERE_PERIODE + index
+
+
+#: Onglet « mode d'emploi » du classeur d'origine. Il n'a aucun rôle dans une
+#: attestation et pèse à lui seul près de 90 % du poids du fichier produit
+#: (4 images, ~280 Ko) : il est retiré des exports.
+FEUILLE_MODE_EMPLOI = "MODOP Attestation VIV"
+
+
+def alleger_classeur(classeur) -> None:
+    """Retire du classeur exporté ce qui ne sert pas à l'attestation."""
+    if FEUILLE_MODE_EMPLOI in classeur.sheetnames:
+        del classeur[FEUILLE_MODE_EMPLOI]

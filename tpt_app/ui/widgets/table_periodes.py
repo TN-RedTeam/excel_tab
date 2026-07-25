@@ -1,7 +1,9 @@
 """Table de saisie des périodes.
 
-Une période est un objet unique : un couple de dates, un motif principal et un
-motif d'absence. L'ambiguïté du tableur — dates saisies tantôt sur la ligne
+Une période est un objet unique : un couple de dates et **un seul motif**. Le
+classeur séparait le motif d'activité du motif d'absence sur deux lignes, donc
+deux listes déroulantes ; l'application n'en propose qu'une, où figurent tous les
+motifs du régime. L'ambiguïté du tableur — dates saisies tantôt sur la ligne
 « période », tantôt sur la ligne « motif » — n'est pas reproduite ici (§5.3).
 """
 
@@ -23,17 +25,18 @@ from PySide6.QtWidgets import (
 
 from ...core.arrondi import format_decimal
 from ...core.models import (
-    MOTIFS_ABSENCE,
-    MOTIFS_PRINCIPAUX,
     NB_PERIODES_MAX,
     NB_PERIODES_MAX_ML35,
     REGIME_ML35,
     Periode,
+    decomposer_motif,
+    motifs_proposes,
+    recomposer_motif,
 )
 from ..theme import UNITE
 from .champs import SaisieChoix, SaisieDate
 
-COLONNES = ("N°", "Motif principal", "Motif d'absence", "Du", "Au", "Nb jours", "30ème")
+COLONNES = ("N°", "Motif", "Du", "Au", "Nb jours", "30ème")
 
 
 class TablePeriodes(QWidget):
@@ -58,9 +61,8 @@ class TablePeriodes(QWidget):
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         entetes = self.table.horizontalHeader()
         entetes.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        for colonne in (1, 2):
-            entetes.setSectionResizeMode(colonne, QHeaderView.Stretch)
-        for colonne in (3, 4, 5, 6):
+        entetes.setSectionResizeMode(1, QHeaderView.Stretch)
+        for colonne in (2, 3, 4, 5):
             entetes.setSectionResizeMode(colonne, QHeaderView.ResizeToContents)
         disposition.addWidget(self.table)
 
@@ -111,13 +113,14 @@ class TablePeriodes(QWidget):
         resultat = []
         for ligne in range(self.table.rowCount()):
             motif = self.table.cellWidget(ligne, 1)
-            absence = self.table.cellWidget(ligne, 2)
-            debut = self.table.cellWidget(ligne, 3)
-            fin = self.table.cellWidget(ligne, 4)
+            debut = self.table.cellWidget(ligne, 2)
+            fin = self.table.cellWidget(ligne, 3)
             numero = self.table.item(ligne, 0)
+            principal, absence = decomposer_motif(
+                self._regime, motif.valeur() if motif else "")
             resultat.append(Periode(
-                motif_principal=motif.valeur() if motif else "",
-                motif_absence=absence.valeur() if absence else "",
+                motif_principal=principal,
+                motif_absence=absence,
                 date_debut=debut.valeur() if debut else None,
                 date_fin=fin.valeur() if fin else None,
                 # Conserve la ligne de saisie d'origine d'un dossier importé : la
@@ -132,14 +135,14 @@ class TablePeriodes(QWidget):
             if ligne >= len(resultats):
                 break
             resultat = resultats[ligne]
-            self._definir_cellule(ligne, 5, format_decimal(resultat.nb_jours, 0))
-            self._definir_cellule(ligne, 6, format_decimal(resultat.trentieme, 4))
+            self._definir_cellule(ligne, 4, format_decimal(resultat.nb_jours, 0))
+            self._definir_cellule(ligne, 5, format_decimal(resultat.trentieme, 4))
 
     def signaler_anomalie(self, index: int, colonne: str, message: str,
                           gravite: str) -> None:
         """Colore la ligne concernée et place le message en infobulle."""
-        correspondance = {"motif_principal": 1, "motif_absence": 2,
-                          "date_debut": 3, "date_fin": 4}
+        correspondance = {"motif_principal": 1, "motif_absence": 1,
+                          "date_debut": 2, "date_fin": 3}
         numero = correspondance.get(colonne)
         if numero is None or index - 1 >= self.table.rowCount():
             return
@@ -153,7 +156,7 @@ class TablePeriodes(QWidget):
 
     def effacer_anomalies(self) -> None:
         for ligne in range(self.table.rowCount()):
-            for colonne in (1, 2, 3, 4):
+            for colonne in (1, 2, 3):
                 widget = self.table.cellWidget(ligne, colonne)
                 if widget is None:
                     continue
@@ -168,23 +171,22 @@ class TablePeriodes(QWidget):
         ligne = self.table.rowCount()
         self.table.insertRow(ligne)
 
-        motif = SaisieChoix(MOTIFS_PRINCIPAUX.get(self._regime, ()), autorise_vide=True)
-        motif.definir_valeur(periode.motif_principal)
-        absence = SaisieChoix(MOTIFS_ABSENCE.get(self._regime, ()), autorise_vide=True)
-        absence.definir_valeur(periode.motif_absence)
+        # Un seul menu déroulant : activité et absences y figurent ensemble.
+        motif = SaisieChoix(motifs_proposes(self._regime), autorise_vide=True)
+        motif.definir_valeur(recomposer_motif(periode.motif_principal,
+                                              periode.motif_absence))
         debut = SaisieDate()
         debut.definir_valeur(periode.date_debut)
         fin = SaisieDate()
         fin.definir_valeur(periode.date_fin)
 
-        for colonne, widget in ((1, motif), (2, absence), (3, debut), (4, fin)):
+        for colonne, widget in ((1, motif), (2, debut), (3, fin)):
             self.table.setCellWidget(ligne, colonne, widget)
-        for colonne in (0, 5, 6):
+        for colonne in (0, 4, 5):
             self._definir_cellule(ligne, colonne, "")
         self.table.item(ligne, 0).setData(Qt.UserRole, periode.dates_sur_ligne_periode)
 
         motif.currentIndexChanged.connect(self._ligne_modifiee)
-        absence.currentIndexChanged.connect(self._ligne_modifiee)
         debut.dateChanged.connect(self._ligne_modifiee)
         fin.dateChanged.connect(self._ligne_modifiee)
 
@@ -193,7 +195,7 @@ class TablePeriodes(QWidget):
         emetteur = self.sender()
         for ligne in range(self.table.rowCount()):
             if any(self.table.cellWidget(ligne, colonne) is emetteur
-                   for colonne in (1, 2, 3, 4)):
+                   for colonne in (1, 2, 3)):
                 numero = self.table.item(ligne, 0)
                 if numero is not None:
                     numero.setData(Qt.UserRole, None)
@@ -215,10 +217,10 @@ class TablePeriodes(QWidget):
         self.bouton_ajouter.setEnabled(self.table.rowCount() < self.maximum)
 
     def _ajouter(self) -> None:
+        """Ajoute une période vierge : motif et dates restent à renseigner."""
         if self.table.rowCount() >= self.maximum:
             return
-        defaut = MOTIFS_PRINCIPAUX.get(self._regime, ("",))[0]
-        self._inserer_ligne(Periode(motif_principal=defaut))
+        self._inserer_ligne(Periode())
         self._renumeroter()
         self._signaler()
 

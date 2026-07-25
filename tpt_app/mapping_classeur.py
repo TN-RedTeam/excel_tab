@@ -42,6 +42,9 @@ ML36_ENTREES = {
 }
 ML36_BASES_LIBRES = ("B12", "B13", "B14")
 ML36_MAJORATIONS_LIBRES = ("E12", "E13", "E14")
+#: Cellules d'intitulé, libres dans le gabarit, en regard de chaque ligne.
+ML36_LIBELLES_BASES_LIBRES = ("A12", "A13", "A14")
+ML36_LIBELLES_MAJORATIONS_LIBRES = ("D12", "D13", "D14")
 
 ML36_CALCULES = {
     "base_salariale": "B15",
@@ -101,6 +104,8 @@ ML37_ENTREES = {
 }
 ML37_BASES_LIBRES = ("B13", "B14", "B15")
 ML37_MAJORATIONS_LIBRES = ("E13", "E14", "E15")
+ML37_LIBELLES_BASES_LIBRES = ("A13", "A14", "A15")
+ML37_LIBELLES_MAJORATIONS_LIBRES = ("D13", "D14", "D15")
 
 ML37_CALCULES = {
     "base_salariale": "B16",

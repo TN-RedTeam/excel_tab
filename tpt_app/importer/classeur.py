@@ -117,9 +117,13 @@ def _lire_ml36(feuille) -> DossierML36:
         tmf_100=_montant(feuille, cellules["tmf_100"]),
         p_transfert_100=_montant(feuille, cellules["p_transfert_100"]),
         bases_libres=[_montant(feuille, c) for c in mc.ML36_BASES_LIBRES],
+        libelles_bases_libres=[_texte(feuille, c)
+                               for c in mc.ML36_LIBELLES_BASES_LIBRES],
         maj_nuit=_montant(feuille, cellules["maj_nuit"]),
         maj_ferie=_montant(feuille, cellules["maj_ferie"]),
         majorations_libres=[_montant(feuille, c) for c in mc.ML36_MAJORATIONS_LIBRES],
+        libelles_majorations_libres=[_texte(feuille, c)
+                                     for c in mc.ML36_LIBELLES_MAJORATIONS_LIBRES],
         paniers_r226=_montant(feuille, cellules["paniers_r226"]),
         montant_siaci=_montant(feuille, cellules["montant_siaci"]),
         pua=_montant(feuille, cellules["pua"]),
@@ -144,9 +148,13 @@ def _lire_ml37(feuille) -> DossierML37:
         tmf_100=_montant(feuille, cellules["tmf_100"]),
         p_transfert_100=_montant(feuille, cellules["p_transfert_100"]),
         bases_libres=[_montant(feuille, c) for c in mc.ML37_BASES_LIBRES],
+        libelles_bases_libres=[_texte(feuille, c)
+                               for c in mc.ML37_LIBELLES_BASES_LIBRES],
         remu_ca=_montant(feuille, cellules["remu_ca"]),
         maj_nuit=_montant(feuille, cellules["maj_nuit"]),
         majorations_libres=[_montant(feuille, c) for c in mc.ML37_MAJORATIONS_LIBRES],
+        libelles_majorations_libres=[_texte(feuille, c)
+                                     for c in mc.ML37_LIBELLES_MAJORATIONS_LIBRES],
         paniers_r226=_montant(feuille, cellules["paniers_r226"]),
         montant_siaci=_montant(feuille, cellules["montant_siaci"]),
         pua=_montant(feuille, cellules["pua"]),

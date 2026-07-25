@@ -17,6 +17,7 @@ from ..core.arrondi import format_date, format_euro, format_pourcent
 from ..core.models import Dossier, ResultatAttestation
 from ..core.moteur import ResultatDossier
 from . import gabarit
+from .ecriture import ecrire_atomiquement
 from .excel import CHEMIN_TEMPLATE, ExportBloque
 from .rendu import rendre_page
 
@@ -90,13 +91,14 @@ def exporter(dossier: Dossier, resultat: ResultatDossier, destination,
     # rendu s'adaptant à l'échelle nécessaire pour tenir sur une A4.
     attestation = resultat.attestation
     supplement = gabarit.etendre_tableau_periodes(feuille, attestation.nb_lignes_utiles)
+    gabarit.uniformiser_lignes_periode(feuille, attestation.nb_lignes_utiles)
 
     titre = f"Attestation Vivinter — {attestation.nom} " \
             f"{attestation.prenom}".strip()
-    return rendre_page(
-        feuille,
-        gabarit.plage_impression(supplement),
+    valeurs = valeurs_attestation(attestation, supplement)
+    plage = gabarit.plage_impression(supplement)
+
+    return ecrire_atomiquement(
         destination,
-        valeurs=valeurs_attestation(attestation, supplement),
-        titre=titre,
+        lambda cible: rendre_page(feuille, plage, cible, valeurs=valeurs, titre=titre),
     )

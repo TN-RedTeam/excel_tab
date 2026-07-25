@@ -10,6 +10,11 @@ from tpt_app.core.attestation import nom_fichier
 from tpt_app.core.models import REGIME_ML36, Periode
 from tpt_app.export import excel, pdf
 from tpt_app.export.excel import CHEMIN_TEMPLATE
+from tpt_app.export.gabarit import (
+    FEUILLE_MODE_EMPLOI,
+    LIGNE_CLOTURE,
+    LIGNE_PREMIERE_PERIODE,
+)
 from tpt_app.mapping_classeur import FEUILLE_ATTESTATION
 
 ATTRIBUTS_STYLE = ("font", "fill", "border", "alignment", "number_format", "protection")
@@ -46,13 +51,25 @@ def classeur_exporte(dossier_test2, tmp_path):
     return openpyxl.load_workbook(chemin)
 
 
+#: Lignes de période dont le style est volontairement normalisé à l'export : le
+#: gabarit y comporte des irrégularités (G27, bordures de B27/C27).
+LIGNES_UNIFORMISEES = set(range(LIGNE_PREMIERE_PERIODE, LIGNE_CLOTURE))
+
+
 def test6_styles_identiques_au_template(classeur_exporte):
-    """Aucune différence de style, de fusion ou de dimension avec le template."""
+    """Aucune différence de style, de fusion ou de dimension avec le template.
+
+    Deux écarts sont voulus et vérifiés séparément : l'onglet « mode d'emploi »
+    est retiré (il pèse 280 Ko d'images sans servir à l'attestation), et les
+    lignes de période sont uniformisées.
+    """
     template = openpyxl.load_workbook(CHEMIN_TEMPLATE)
 
-    assert classeur_exporte.sheetnames == template.sheetnames
+    assert classeur_exporte.sheetnames == [
+        nom for nom in template.sheetnames if nom != FEUILLE_MODE_EMPLOI
+    ]
 
-    for nom in template.sheetnames:
+    for nom in classeur_exporte.sheetnames:
         attendu, obtenu = template[nom], classeur_exporte[nom]
 
         assert {str(m) for m in obtenu.merged_cells.ranges} == \
@@ -74,6 +91,8 @@ def test6_styles_identiques_au_template(classeur_exporte):
                 # qui portent réellement une mise en forme — sont intactes.
                 if cellule._style is None:
                     continue
+                if nom == FEUILLE_ATTESTATION and cellule.row in LIGNES_UNIFORMISEES:
+                    continue
                 autre = obtenu[cellule.coordinate]
                 for attribut in ATTRIBUTS_STYLE:
                     assert normaliser(getattr(autre, attribut)) == \
@@ -83,8 +102,36 @@ def test6_styles_identiques_au_template(classeur_exporte):
 
 def test6_images_conservees(classeur_exporte):
     template = openpyxl.load_workbook(CHEMIN_TEMPLATE)
-    for nom in template.sheetnames:
+    for nom in classeur_exporte.sheetnames:
         assert len(classeur_exporte[nom]._images) == len(template[nom]._images), nom
+
+
+def test6_onglet_mode_emploi_retire(classeur_exporte, dossier_test2, tmp_path):
+    """L'onglet « mode d'emploi » sort de l'export : 280 Ko d'images en moins."""
+    assert FEUILLE_MODE_EMPLOI not in classeur_exporte.sheetnames
+
+    resultat = moteur.calculer(dossier_test2)
+    chemin = excel.exporter(dossier_test2, resultat, tmp_path / "poids.xlsx")
+    assert chemin.stat().st_size < CHEMIN_TEMPLATE.stat().st_size / 4
+
+
+def test6_lignes_de_periode_uniformes(classeur_exporte):
+    """Toutes les lignes de période partagent la mise en forme du gabarit.
+
+    Le gabarit fourni laissait ``G27`` en police par défaut et ``B27``/``C27``
+    sans bordure horizontale, ce qui se voyait dès la deuxième période.
+    """
+    feuille = classeur_exporte[FEUILLE_ATTESTATION]
+    reference = [
+        normaliser(getattr(feuille.cell(row=LIGNE_CLOTURE - 1, column=colonne), attribut))
+        for colonne in range(2, 9) for attribut in ATTRIBUTS_STYLE
+    ]
+    for ligne in LIGNES_UNIFORMISEES:
+        obtenu = [
+            normaliser(getattr(feuille.cell(row=ligne, column=colonne), attribut))
+            for colonne in range(2, 9) for attribut in ATTRIBUTS_STYLE
+        ]
+        assert obtenu == reference, f"ligne {ligne}"
 
 
 def test6_bandeau_orange(classeur_exporte):

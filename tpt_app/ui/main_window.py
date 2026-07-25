@@ -28,6 +28,7 @@ from ..core.models import Dossier
 from ..db.repository import DepotDossiers
 from ..export import excel as export_excel
 from ..export import pdf as export_pdf
+from ..export.ecriture import EcritureImpossible, chemin_disponible
 from ..export.excel import ExportBloque
 from ..importer.classeur import ImportImpossible, importer
 from .pages.attestation import PageAttestation
@@ -82,9 +83,13 @@ class FenetrePrincipale(QMainWindow):
         self.action_enregistrer = QAction("Enregistrer", self)
         self.action_excel = QAction("Export Excel", self)
         self.action_pdf = QAction("Export PDF", self)
+        # « Recalculer » n'est pas dans la barre : tout est déjà recalculé à
+        # chaque frappe. L'action existe pour le raccourci F5 exigé au cahier
+        # des charges, en filet de sécurité.
         self.action_recalcul = QAction("Recalculer", self)
+        self.addAction(self.action_recalcul)
         for action in (self.action_nouveau, self.action_enregistrer,
-                       self.action_excel, self.action_pdf, self.action_recalcul):
+                       self.action_excel, self.action_pdf):
             barre.addAction(action)
 
         barre.addSeparator()
@@ -92,7 +97,9 @@ class FenetrePrincipale(QMainWindow):
         self.case_compatibilite.setChecked(True)
         self.case_compatibilite.setToolTip(
             "Reproduit les formules du classeur d'origine, y compris les garde-fous "
-            "qui ne s'y déclenchent jamais (cf. docs/ANOMALIES.md, §9.1)."
+            "qui ne s'y déclenchent jamais (cf. docs/ANOMALIES.md, §9.1).\n"
+            "Sans effet sur un dossier saisi dans l'application : il ne joue que "
+            "sur les dossiers repris d'un classeur."
         )
         self.case_compatibilite.toggled.connect(self._changer_mode)
         barre.addWidget(self.case_compatibilite)
@@ -220,8 +227,22 @@ class FenetrePrincipale(QMainWindow):
             for page in self.pages.values():
                 page.actualiser(self.dossier, self.resultat)
             self._actualiser_barre_etat()
+            self._actualiser_case_compatibilite()
         finally:
             self._synchronisation = False
+
+    def _actualiser_case_compatibilite(self) -> None:
+        """Grise le réglage lorsqu'il ne change rien au dossier affiché.
+
+        Le mode ne joue que sur les dossiers repris d'un classeur ; le griser
+        évite de laisser croire qu'il influe sur une saisie ordinaire.
+        """
+        divergent = bool(self.resultat.ecarts_compatibilite)
+        self.case_compatibilite.setEnabled(divergent)
+        self.case_compatibilite.setText(
+            "Mode de compatibilité classeur v6"
+            if divergent else "Mode de compatibilité classeur v6 (sans effet ici)"
+        )
 
     def _actualiser_barre_etat(self) -> None:
         matrice = self.dossier.matrice_active()
@@ -315,17 +336,25 @@ class FenetrePrincipale(QMainWindow):
             self, "Enregistrer l'attestation", propose, filtres[extension])
         if not chemin:
             return
+        # Deux personnes exportant le même dossier proposeraient le même nom :
+        # on numérote plutôt que d'écraser, sauf si l'utilisateur a explicitement
+        # confirmé le remplacement dans la boîte de dialogue.
+        if Path(chemin).name == propose:
+            chemin = chemin_disponible(chemin)
 
         module = export_pdf if extension == "pdf" else export_excel
         try:
-            module.exporter(self.dossier, self.resultat, chemin)
+            produit = module.exporter(self.dossier, self.resultat, chemin)
         except ExportBloque as erreur:
+            self._alerter(str(erreur))
+            return
+        except EcritureImpossible as erreur:
             self._alerter(str(erreur))
             return
         except OSError as erreur:
             self._alerter(f"Le fichier n'a pas pu être écrit : {erreur}")
             return
-        self.statusBar().showMessage(f"Attestation enregistrée : {chemin}", 8000)
+        self.statusBar().showMessage(f"Attestation enregistrée : {produit}", 8000)
 
     def _alerter(self, message: str) -> None:
         QMessageBox.warning(self, "Calculateur TPT", message)

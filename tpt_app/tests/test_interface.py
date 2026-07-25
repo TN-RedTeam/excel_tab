@@ -228,18 +228,48 @@ def test_saisie_de_date_au_clavier(fenetre):
     assert champ.valeur().year == QDate.currentDate().year()
 
 
-def test_listes_de_motifs_completes_en_ml36(fenetre):
-    """Les 4 motifs d'absence ML36 sont proposés dans la table des périodes."""
+def test_menu_unique_de_motifs(fenetre):
+    """Un seul menu déroulant réunit l'activité et les absences du régime."""
     fenetre.charger_dossier(Dossier(regime=REGIME_ML36))
     table = fenetre.page_periodes.table
     table._ajouter()
 
-    absence = table.table.cellWidget(0, 2)
-    proposes = [absence.itemText(i) for i in range(absence.count())]
-    assert proposes == ["", "Maladie", "CA / JEM", "Autres absences", "Abs sans solde"]
+    motif = table.table.cellWidget(0, 1)
+    proposes = [motif.itemText(i) for i in range(motif.count())]
+    assert proposes == ["", "ML36", "Maladie", "CA / JEM", "Autres absences",
+                        "Abs sans solde"]
 
-    principal = table.table.cellWidget(0, 1)
-    assert [principal.itemText(i) for i in range(principal.count())] == ["", "ML36"]
+    # Une période ajoutée part d'une case vide.
+    assert motif.valeur() == ""
+    assert table.periodes()[0].motif_principal == ""
+    assert table.periodes()[0].motif_absence == ""
+
+
+def test_menu_unique_en_ml37(fenetre):
+    fenetre.charger_dossier(Dossier(regime=REGIME_ML37))
+    table = fenetre.page_periodes.table
+    table._ajouter()
+
+    motif = table.table.cellWidget(0, 1)
+    assert [motif.itemText(i) for i in range(motif.count())] == [
+        "", "ML37", "CA", "MALADIE", "JEM", "Abs sans solde"]
+
+
+def test_choix_d_une_absence_renseigne_les_deux_motifs(fenetre):
+    """Choisir « Maladie » place le régime en motif principal et l'absence."""
+    fenetre.charger_dossier(Dossier(regime=REGIME_ML36))
+    table = fenetre.page_periodes.table
+    table._ajouter()
+    table.table.cellWidget(0, 1).definir_valeur("Maladie")
+
+    periode = table.periodes()[0]
+    assert periode.motif_principal == "ML36"
+    assert periode.motif_absence == "Maladie"
+
+    table.table.cellWidget(0, 1).definir_valeur("ML36")
+    periode = table.periodes()[0]
+    assert periode.motif_principal == "ML36"
+    assert periode.motif_absence == ""
 
 
 def test_initiales_dans_l_apercu(fenetre, dossier_test1):
