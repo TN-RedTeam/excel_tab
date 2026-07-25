@@ -63,9 +63,8 @@ class BlocML36ML37(_BlocRegime):
 
         groupe_taux = QGroupBox("Taux")
         formulaire = Formulaire(groupe_taux)
-        self.taux_initial = self._taux(formulaire, "Taux initial", "100 % en principe.")
-        self.taux_tpt = self._taux(formulaire, "Taux TPT",
-                                   "Quotité travaillée pendant le temps partiel.")
+        self.taux_initial = self._taux(formulaire, "Taux initial")
+        self.taux_tpt = self._taux(formulaire, "Taux TPT")
         disposition.addWidget(groupe_taux)
 
         groupe_base = QGroupBox("Base salariale")
@@ -76,8 +75,7 @@ class BlocML36ML37(_BlocRegime):
             self._ligne_libre(base, f"base_libre_{index}",
                               f"Ligne libre {index + 1}")
         self.total_base = ValeurCalculee()
-        base.ajouter("Base salariale", self.total_base,
-                     "Somme des lignes ci-dessus.")
+        base.ajouter("Base salariale", self.total_base)
         disposition.addWidget(groupe_base)
 
         groupe_majorations = QGroupBox("Majorations et paniers")
@@ -100,14 +98,12 @@ class BlocML36ML37(_BlocRegime):
         primes = Formulaire(groupe_primes)
         self._montant(primes, "montant_siaci", "Montant SIACI")
         self.montant_reintegre = ValeurCalculee()
-        primes.ajouter("Montant réintégré", self.montant_reintegre,
-                       "Montant SIACI taxé à 24,5 %.")
+        primes.ajouter("Montant réintégré", self.montant_reintegre)
         self._montant(primes, "pua", "PUA")
         self._montant(primes, "pua_percue", "PUA perçue")
         self.perte_pua = ValeurCalculee()
         primes.ajouter("Perte PUA", self.perte_pua)
-        self._montant(primes, "autres_primes", "Autres primes",
-                      "Ventilée au prorata des 30èmes sur l'attestation.")
+        self._montant(primes, "autres_primes", "Autres primes")
         disposition.addWidget(groupe_primes)
         disposition.addStretch(1)
 
@@ -189,7 +185,7 @@ class BlocML35(_BlocRegime):
         self._montant(ij, "igr", "IGR")
         self.total_ij = ValeurCalculee()
         ij.ajouter("TOTAL IJ", self.total_ij)
-        self.taux_perte = self._taux(ij, "Taux de perte", "21 % par défaut.")
+        self.taux_perte = self._taux(ij, "Taux de perte")
         self.perte_declaree = ValeurCalculee()
         ij.ajouter("Perte déclarée", self.perte_declaree)
         self.ij_par_jour = ValeurCalculee()
@@ -220,8 +216,7 @@ class BlocML35(_BlocRegime):
 
 class PageRemuneration(Page):
     titre = "Rémunération"
-    soustitre = ("Les montants sont saisis à 100 %. Les champs grisés sont calculés "
-                 "et ne peuvent pas être modifiés.")
+    soustitre = ""
 
     def construire(self) -> None:
         self._chargement = False

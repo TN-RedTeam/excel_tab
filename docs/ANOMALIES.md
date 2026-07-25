@@ -44,28 +44,32 @@ totaux `PERTE CPAM` et `VIVINTER ON DECLARE LE PERCU` sont **surévalués**.
 
 ### Traitement retenu
 
-L'application implémente le calcul **correct** — une période portant un motif
-`Maladie`, `Autres absences` ou `Abs sans solde` produit un montant nul — et
-expose un réglage `Mode de compatibilité classeur v6`, **activé par défaut**,
-qui reproduit le comportement historique.
+L'application applique la **règle voulue** : une période portant un motif
+`Maladie`, `Autres absences` ou `Abs sans solde` n'est pas rémunérée. Elle ne
+compte pas dans les 30èmes, ne reçoit aucune quote-part de primes, et produit
+0 €.
 
-| | Mode compatibilité v6 (défaut) | Mode corrigé |
-|---|---|---|
-| Période d'absence saisie dans l'application | montants nuls | montants nuls |
-| Période d'absence **importée** avec dates sur la ligne « période » | montants calculés (comme le classeur) | montants nuls |
+L'ambiguïté de saisie disparaissant par construction (§9.4), le cas qui faisait
+diverger le classeur — dates d'absence portées par la ligne « période » — ne peut
+plus se produire : une période d'absence place toujours ses dates sur la ligne
+d'absence, à la saisie comme à l'export.
 
-Les deux modes sont **toujours calculés**, et l'étape « Résultats » affiche un
-avertissement détaillant l'écart poste par poste dès qu'ils divergent.
+Un dossier **repris d'un classeur** dans lequel ces dates avaient été mal placées
+est donc recalculé selon la règle correcte. Les dates elles-mêmes sont
+intégralement récupérées (l'import lit les deux lignes) ; seul le montant change,
+et il change dans le bon sens : le classeur le surévaluait.
 
-Pour un dossier saisi dans l'application, les deux modes donnent le même
-résultat : le réglage n'a d'effet que sur les dossiers repris d'un classeur.
+> Une version antérieure exposait un réglage « Mode de compatibilité classeur v6 »
+> qui permettait de reproduire le calcul erroné. Il a été retiré : sur un dossier
+> saisi dans l'application il n'avait aucun effet, et sur un dossier importé il ne
+> servait qu'à conserver un résultat faux.
 
 ### 🔶 Décision en attente du service paie
 
 > Faut-il régulariser les dossiers historiques dont les périodes d'absence ont été
-> valorisées à tort ? L'application sait chiffrer l'écart dossier par dossier
-> (bandeau de l'étape « Résultats »), mais la décision de rectifier ou non des
-> déclarations déjà transmises à Vivinter n'appartient pas à l'outil.
+> valorisées à tort ? Réimporter le classeur dans l'application donne directement
+> le montant corrigé et permet de mesurer l'écart, mais la décision de rectifier
+> ou non des déclarations déjà transmises à Vivinter n'appartient pas à l'outil.
 
 ---
 
@@ -140,14 +144,12 @@ la « mauvaise » ligne casse silencieusement le calcul.
 ### Traitement retenu
 
 L'ambiguïté est supprimée **par construction** : une période est un objet unique,
-avec un couple `(date_debut, date_fin)`, un motif principal et un motif
-d'absence.
+avec un couple `(date_debut, date_fin)` et un seul motif. L'application place les
+dates sur la bonne ligne à l'export — ligne « période » pour une activité, ligne
+« motif d'absence » pour une absence.
 
-L'import, lui, **lit les deux lignes** et mémorise laquelle portait les dates
-(`Periode.dates_sur_ligne_periode`), afin que le dossier repris reproduise
-exactement le calcul d'origine. Dès que l'utilisateur modifie la ligne dans la
-table des périodes, cette mémoire est effacée et la règle applicative reprend la
-main.
+L'import, lui, **lit les deux lignes** afin de ne perdre aucune date, quelle que
+soit celle qui la portait dans le classeur.
 
 ---
 

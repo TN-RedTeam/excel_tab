@@ -46,7 +46,6 @@ def fenetre(application, tmp_path):
 def test_fenetre_demarre_sur_un_dossier_vierge(fenetre):
     assert fenetre.rail.count() == 6
     assert fenetre.dossier.regime == REGIME_ML36
-    assert fenetre.case_compatibilite.isChecked()
     assert all(ligne.vide for ligne in fenetre.resultat.attestation.lignes)
 
 
@@ -100,32 +99,6 @@ def test_anomalies_affichees_sous_les_champs(fenetre):
     assert "erreur" in fenetre.etat_validite.text()
     # Export interdit tant que la saisie est invalide.
     assert not fenetre.page_attestation.bouton_pdf.isEnabled()
-
-
-def test_bandeau_ecart_de_compatibilite(fenetre):
-    """Le bandeau n'apparaît que lorsque les deux modes divergent (§9.1)."""
-    dossier = Dossier(regime=REGIME_ML36)
-    dossier.ml36.mois = dt.date(2025, 7, 1)
-    dossier.ml36.nb_jours_mois = 30
-    dossier.ml36.tmf_100 = Decimal(2500)
-    dossier.ml36.salarie.nom = "DUPONT"
-    dossier.ml36.salarie.matricule = "A12345"
-    dossier.ml36.periodes = [Periode(
-        motif_principal=REGIME_ML36, motif_absence="Maladie",
-        date_debut=dt.date(2025, 7, 1), date_fin=dt.date(2025, 7, 5),
-        dates_sur_ligne_periode=True,      # cas d'un classeur importé
-    )]
-    fenetre.charger_dossier(dossier)
-
-    assert fenetre.resultat.ecarts_compatibilite
-    assert not fenetre.page_resultats.bandeau.isHidden()
-    assert "service paie" in fenetre.page_resultats.bandeau.text()
-
-    # Sans ambiguïté de saisie, les deux modes concordent : pas de bandeau.
-    dossier.ml36.periodes[0].dates_sur_ligne_periode = None
-    fenetre.charger_dossier(dossier)
-    assert not fenetre.resultat.ecarts_compatibilite
-    assert fenetre.page_resultats.bandeau.isHidden()
 
 
 def test_export_possible_au_dela_de_sept_periodes(fenetre, dossier_test1):

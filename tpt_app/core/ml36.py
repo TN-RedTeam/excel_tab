@@ -65,14 +65,13 @@ def _periodes_completees(dossier: DossierML36) -> list[Periode]:
     return periodes
 
 
-def calculer(dossier: DossierML36, mode_compatibilite: bool = True) -> ResultatMatrice:
+def calculer(dossier: DossierML36) -> ResultatMatrice:
     """Calcule l'intégralité de la matrice ML36.
 
-    ``mode_compatibilite`` reproduit le comportement du classeur v6 : le garde-fou
-    ``IF(A_p="Abs (Mal, CA, autres)";0;…)`` n'y est jamais vrai, si bien qu'une
-    période d'absence dont les dates ont été saisies sur la ligne « période »
-    produit malgré tout un salaire. Désactivé, il applique la règle corrigée :
-    une période portant un motif d'absence produit un montant nul.
+    Le classeur testait ``A_p = "Abs (Mal, CA, autres)"`` pour annuler une période
+    d'absence, valeur absente de toutes ses listes déroulantes : le garde-fou ne
+    se déclenchait jamais. L'application applique la règle voulue — une période
+    portant un motif d'absence produit un montant nul (cf. `ANOMALIES.md` §9.1).
     """
     periodes = _periodes_completees(dossier)
 
@@ -113,7 +112,8 @@ def calculer(dossier: DossierML36, mode_compatibilite: bool = True) -> ResultatM
         else:
             sans_solde = ZERO
 
-        neutralisee = (not mode_compatibilite) and periode.est_absence
+        # Une période d'absence n'est pas rémunérée.
+        neutralisee = periode.est_absence
 
         if neutralisee:
             retabli_base = ZERO
@@ -135,7 +135,6 @@ def calculer(dossier: DossierML36, mode_compatibilite: bool = True) -> ResultatM
                 date_fin=periode.date_fin,
                 motif_principal=periode.motif_principal,
                 motif_absence=periode.motif_absence,
-                dates_sur_ligne_periode=periode.sur_ligne_periode,
                 nb_jours=nb_jours[i],
                 trentieme=e_p,
                 quote_majorations=q_majo,

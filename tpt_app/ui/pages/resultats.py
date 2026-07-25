@@ -1,8 +1,4 @@
-"""Étape 5 — Résultats : synthèse, détail par période, totaux CPAM et Vivinter.
-
-C'est ici qu'est signalé l'écart entre le mode de compatibilité classeur v6 et le
-calcul corrigé (§9.1) : la décision appartient au service paie.
-"""
+"""Étape 5 — Résultats : synthèse, détail par période, totaux CPAM et Vivinter."""
 
 from __future__ import annotations
 
@@ -11,7 +7,6 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
-    QLabel,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -52,15 +47,9 @@ def _dimensionner(table: QTableWidget) -> None:
 
 class PageResultats(Page):
     titre = "Résultats"
-    soustitre = "Recalcul instantané à chaque frappe. Aucun bouton « Calculer »."
+    soustitre = ""
 
     def construire(self) -> None:
-        self.bandeau = QLabel()
-        self.bandeau.setWordWrap(True)
-        self.bandeau.setProperty("role", "avertissement")
-        self.bandeau.setVisible(False)
-        self.contenu.addWidget(self.bandeau)
-
         groupe_totaux = QGroupBox("Totaux")
         colonnes = QHBoxLayout(groupe_totaux)
         colonnes.setSpacing(UNITE * 8)
@@ -99,7 +88,6 @@ class PageResultats(Page):
             self._afficher_ml35(resultat.ml35)
         else:
             self._afficher_matrice(resultat.matrice_active(dossier.regime))
-        self._afficher_ecarts(dossier, resultat)
 
     def _afficher_matrice(self, matrice) -> None:
         self.salaire_retabli.definir_valeur(matrice.salaire_retabli_3201)
@@ -166,27 +154,3 @@ class PageResultats(Page):
                 if colonne >= 4:
                     element.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 self.table.setItem(index, colonne, element)
-
-    def _afficher_ecarts(self, dossier: Dossier, resultat) -> None:
-        if not resultat.ecarts_compatibilite:
-            self.bandeau.setVisible(False)
-            return
-
-        mode = ("Mode de compatibilité classeur v6 **activé**"
-                if dossier.mode_compatibilite
-                else "Mode de compatibilité classeur v6 **désactivé**")
-        lignes = [
-            f"{mode} — les deux modes de calcul divergent sur ce dossier. "
-            "Cette différence provient d'un garde-fou du classeur qui ne se "
-            "déclenche jamais (cf. docs/ANOMALIES.md, §9.1) : arbitrage du "
-            "service paie."
-        ]
-        for ecart in resultat.ecarts_compatibilite:
-            lignes.append(
-                f"• {ecart.regime} — {ecart.libelle} : "
-                f"{format_euro(ecart.valeur_compatibilite)} en mode v6 contre "
-                f"{format_euro(ecart.valeur_corrigee)} en calcul corrigé "
-                f"(écart {format_euro(ecart.ecart)})."
-            )
-        self.bandeau.setText("\n".join(lignes).replace("**", ""))
-        self.bandeau.setVisible(True)

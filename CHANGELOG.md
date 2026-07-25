@@ -2,6 +2,26 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.3.0] — 2026-07-25
+
+### Supprimé
+
+- **Le mode de compatibilité classeur v6.** Il n'avait aucun effet sur un dossier
+  saisi dans l'application, et sur un dossier importé il ne servait qu'à
+  reproduire un calcul erroné du classeur. L'application applique désormais
+  toujours la règle voulue : une période d'absence n'est pas rémunérée.
+  La case à cocher, le double calcul et le bandeau d'écart de l'étape
+  « Résultats » disparaissent avec lui.
+- Les **textes d'aide sous les champs** et les **sous-titres des étapes**. Les
+  messages de contrôle continuent, eux, de s'afficher sous le champ concerné.
+
+### Modifié
+
+- Un dossier importé dont les dates d'absence figuraient sur la ligne « période »
+  du classeur est recalculé selon la règle correcte. Les dates sont
+  intégralement récupérées ; seul le montant change, et le classeur le
+  surévaluait.
+
 ## [1.2.0] — 2026-07-25
 
 ### Ajouté

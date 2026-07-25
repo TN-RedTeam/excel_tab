@@ -14,7 +14,12 @@ import pytest
 from tpt_app.core import ml36 as moteur_ml36
 from tpt_app.core import moteur
 from tpt_app.core.arrondi import ZERO, arrondi_centime, format_euro, format_pourcent
-from tpt_app.core.attestation import LIBELLE_CONGES, LIBELLE_MALADIE, LIBELLE_SANS_SOLDE
+from tpt_app.core.attestation import (
+    LIBELLE_CONGES,
+    LIBELLE_MALADIE,
+    LIBELLE_SANS_SOLDE,
+    _construire_ligne,
+)
 from tpt_app.core.models import (
     Dossier,
     DossierML36,
@@ -22,6 +27,7 @@ from tpt_app.core.models import (
     Periode,
     REGIME_ML36,
     REGIME_ML37,
+    ResultatPeriode,
 )
 
 from .conftest import periode, salarie
@@ -121,12 +127,31 @@ def test2_colonne_h(dossier_test2):
 
 
 def test3_motif_prime_sur_le_montant():
-    """Une période ML36 « Maladie » au montant non nul doit afficher « Maladie ».
+    """Un libellé d'absence masque toujours le montant, quel qu'il soit.
 
-    Le cas se produit sur un dossier importé où les dates avaient été saisies sur
-    la ligne « période » plutôt que sur la ligne « motif » : la matrice calcule
-    alors un montant, que l'attestation doit malgré tout masquer.
+    La règle est testée sur la construction de la ligne elle-même : depuis que les
+    périodes d'absence ne sont plus rémunérées, aucune saisie ne peut produire
+    simultanément un motif d'absence et un montant non nul. La garde reste utile —
+    c'est elle qui traduit « le motif prime sur le montant » du cahier des charges.
     """
+    resultat = ResultatPeriode(
+        index=1,
+        date_debut=dt.date(2025, 7, 1),
+        date_fin=dt.date(2025, 7, 5),
+        motif_principal=REGIME_ML36,
+        motif_absence="Maladie",
+        montant_declare=Decimal("166.67"),
+        dont_pua_pfa=Decimal("25.00"),
+    )
+    ligne = _construire_ligne(1, REGIME_ML36, resultat, Decimal("0.4"))
+
+    assert ligne.libelle == LIBELLE_MALADIE
+    assert ligne.montant is None
+    assert ligne.taux is None
+
+
+def test3_periode_d_absence_n_est_pas_remuneree():
+    """Une période d'absence produit 0 € et ne dilue pas la ventilation."""
     ml36 = DossierML36(
         salarie=salarie(),
         mois=dt.date(2025, 7, 1),
@@ -134,24 +159,21 @@ def test3_motif_prime_sur_le_montant():
         taux_tpt=Decimal("0.4"),
         tmf_100=Decimal(2500),
         periodes=[
-            Periode(
-                motif_principal=REGIME_ML36,
-                motif_absence="Maladie",
-                date_debut=dt.date(2025, 7, 1),
-                date_fin=dt.date(2025, 7, 5),
-                dates_sur_ligne_periode=True,
-            )
+            Periode(motif_principal=REGIME_ML36, motif_absence="Maladie",
+                    date_debut=dt.date(2025, 7, 1), date_fin=dt.date(2025, 7, 5)),
+            periode(11, 18, REGIME_ML36),
         ],
     )
-    dossier = Dossier(regime=REGIME_ML36, ml36=ml36, mode_compatibilite=True)
-    resultat = moteur.calculer(dossier)
+    resultat = moteur.calculer(Dossier(regime=REGIME_ML36, ml36=ml36))
 
-    montant = resultat.ml36.periodes[0].montant_declare
-    assert arrondi_centime(montant) == Decimal("166.67")
+    absence, travaillee = resultat.ml36.periodes[0], resultat.ml36.periodes[1]
+    assert absence.trentieme == ZERO
+    assert arrondi_centime(absence.montant_declare) == ZERO
+    # La période travaillée reçoit la totalité de la ventilation.
+    assert travaillee.trentieme == resultat.ml36.somme_trentiemes
 
-    ligne = resultat.attestation.lignes[0]
-    assert ligne.libelle == LIBELLE_MALADIE
-    assert ligne.montant is None
+    assert resultat.attestation.lignes[0].libelle == LIBELLE_MALADIE
+    assert resultat.attestation.lignes[0].montant is None
 
 
 # --------------------------------------------------------------------------

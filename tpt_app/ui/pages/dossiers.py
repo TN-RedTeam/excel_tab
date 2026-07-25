@@ -24,7 +24,7 @@ COLONNES = ("Nom", "Prénom", "Matricule", "Régime", "Mois", "Modifié le")
 
 class PageDossiers(Page):
     titre = "Dossiers"
-    soustitre = "Dossiers enregistrés localement, du plus récemment modifié au plus ancien."
+    soustitre = ""
 
     nouveau_demande = Signal()
     import_demande = Signal()

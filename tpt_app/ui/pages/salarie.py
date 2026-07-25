@@ -24,8 +24,7 @@ DESCRIPTIONS_REGIME = {
 
 class PageSalarie(Page):
     titre = "Salarié"
-    soustitre = ("Identité du salarié, mois traité et régime de prise en charge. "
-                 "Un dossier relève d'un seul régime à la fois.")
+    soustitre = ""
 
     def construire(self) -> None:
         self._chargement = False
@@ -65,14 +64,11 @@ class PageSalarie(Page):
         self.djt = SaisieDate()
         self.mois = SaisieMois()
         self.nb_jours_mois = SaisieEntier(28, 31)
-        self.champ_date_at = periode.ajouter(
-            "Date AT", self.date_at, "Renseignée pour les dossiers ML35 et ML37.")
-        self.champ_djt = periode.ajouter(
-            "DJT", self.djt, "Date de début du temps partiel.")
+        self.champ_date_at = periode.ajouter("Date AT", self.date_at)
+        self.champ_djt = periode.ajouter("DJT", self.djt)
         self.champ_mois = periode.ajouter("Mois traité", self.mois)
-        self.champ_nb_jours = periode.ajouter(
-            "Nb de jours dans le mois", self.nb_jours_mois,
-            "Sert de diviseur au calcul des 30èmes.")
+        self.champ_nb_jours = periode.ajouter("Nb de jours dans le mois",
+                                              self.nb_jours_mois)
         self.contenu.addWidget(groupe_periode)
         self.contenu.addStretch(1)
 

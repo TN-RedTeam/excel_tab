@@ -1,9 +1,9 @@
 """Import d'un classeur ``.xlsx`` existant (§7, §9.4).
 
 Le tableur tolérait la saisie des dates sur deux lignes différentes selon la
-liste déroulante employée. L'import lit donc **les deux lignes** et mémorise
-celle qui portait réellement les dates (``dates_sur_ligne_periode``), afin que le
-dossier repris reproduise exactement le calcul d'origine.
+liste déroulante employée. L'import lit donc **les deux lignes**, afin de ne
+perdre aucune date, et le dossier repris est ensuite calculé selon la règle de
+l'application.
 """
 
 from __future__ import annotations
@@ -90,19 +90,15 @@ def _lire_periode(feuille, lignes: dict) -> Periode:
     fin_absence = _date(feuille, f"C{ligne_absence}")
 
     if debut_periode is not None:
-        debut, fin, sur_ligne_periode = debut_periode, fin_periode, True
-    elif debut_absence is not None:
-        debut, fin, sur_ligne_periode = debut_absence, fin_absence, False
+        debut, fin = debut_periode, fin_periode
     else:
-        debut = fin = None
-        sur_ligne_periode = True
+        debut, fin = debut_absence, fin_absence
 
     return Periode(
         motif_principal=_texte(feuille, f"A{ligne_periode}"),
         motif_absence=_texte(feuille, f"A{ligne_absence}"),
         date_debut=debut,
         date_fin=fin,
-        dates_sur_ligne_periode=sur_ligne_periode if debut is not None else None,
     )
 
 

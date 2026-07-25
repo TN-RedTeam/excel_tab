@@ -29,9 +29,7 @@ from .base import Page
 
 class PageAttestation(Page):
     titre = "Attestation"
-    soustitre = ("Les colonnes « Dont PUA / PFA » et « Autres primes » sont calculées "
-                 "et non modifiables. Toutes les périodes du dossier sont déclarées : "
-                 "le tableau s'étend et le PDF tient sur une seule page.")
+    soustitre = ""
 
     #: Émis quand l'utilisateur demande un export.
     export_demande = Signal(str)
@@ -63,7 +61,7 @@ class PageAttestation(Page):
         formulaire.ajouter("Le", self.fait_le)
         formulaire.ajouter("Nom du rédacteur", self.nom_redacteur)
         formulaire.ajouter("Téléphone", self.telephone)
-        formulaire.ajouter("Mail", self.mail, "Constante Vivinter, modifiable.")
+        formulaire.ajouter("Mail", self.mail)
         disposition.addWidget(groupe)
 
         self.avertissement = QLabel()

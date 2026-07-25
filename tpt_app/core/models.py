@@ -77,6 +77,7 @@ def recomposer_motif(motif_principal: str, motif_absence: str) -> str:
     """Opération inverse : le motif à présenter dans la liste déroulante."""
     return (motif_absence or motif_principal or "").strip()
 
+
 NB_PERIODES_MAX = 10
 NB_PERIODES_MAX_ML35 = 8
 #: Nombre de lignes de période du gabarit Vivinter. Ce n'est plus une limite :
@@ -100,23 +101,17 @@ class Periode:
     """Une période continue au sein du mois traité.
 
     Dans le classeur, une période occupe deux lignes : la « ligne période »
-    (motif principal + dates) et la « ligne motif d'absence » (motif d'absence +
+    (motif d'activité + dates) et la « ligne motif d'absence » (motif d'absence +
     dates). L'utilisateur saisissait les dates sur l'une ou l'autre selon la
-    liste déroulante employée ; l'application supprime cette ambiguïté en ne
-    stockant qu'un seul couple de dates.
-
-    ``dates_sur_ligne_periode`` mémorise en revanche *où* les dates se trouvaient
-    dans le classeur d'origine. La valeur par défaut (``None``) applique la règle
-    applicative — les dates d'une période d'absence appartiennent à la ligne
-    d'absence — ; l'import d'un classeur historique force explicitement la valeur
-    lue afin de reproduire le calcul d'origine au centime près.
+    liste déroulante employée, ce qui cassait silencieusement le calcul en cas
+    d'erreur de ligne. L'application supprime cette ambiguïté : un seul couple de
+    dates, placé automatiquement sur la bonne ligne à l'export.
     """
 
     motif_principal: str = ""
     motif_absence: str = ""
     date_debut: Optional[dt.date] = None
     date_fin: Optional[dt.date] = None
-    dates_sur_ligne_periode: Optional[bool] = None
 
     @property
     def renseignee(self) -> bool:
@@ -130,9 +125,12 @@ class Periode:
 
     @property
     def sur_ligne_periode(self) -> bool:
-        """Vrai si les dates alimentent la ligne « période » de la matrice."""
-        if self.dates_sur_ligne_periode is not None:
-            return self.dates_sur_ligne_periode
+        """Vrai si les dates alimentent la ligne « période » de la matrice.
+
+        Une période d'absence porte ses dates sur la ligne « motif d'absence » :
+        elle n'est pas rémunérée, ne compte pas dans les 30èmes, et ne reçoit
+        donc aucune quote-part de primes.
+        """
         return not self.est_absence
 
     @property
@@ -324,7 +322,6 @@ class Dossier:
     ml36: DossierML36 = field(default_factory=DossierML36)
     ml37: DossierML37 = field(default_factory=DossierML37)
     attestation: Attestation = field(default_factory=Attestation)
-    mode_compatibilite: bool = True
     cree_le: Optional[dt.datetime] = None
     modifie_le: Optional[dt.datetime] = None
 
@@ -351,10 +348,6 @@ class ResultatPeriode:
     date_fin: Optional[dt.date] = None
     motif_principal: str = ""
     motif_absence: str = ""
-
-    #: Vrai si les dates alimentent la ligne « période » de la matrice, faux si
-    #: elles alimentent la ligne « motif d'absence » (cf. `Periode`).
-    dates_sur_ligne_periode: bool = True
 
     nb_jours: Decimal = ZERO                # D_p
     trentieme: Decimal = ZERO               # E_p

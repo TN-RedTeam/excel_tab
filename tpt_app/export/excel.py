@@ -115,7 +115,8 @@ def _remplir_matrice(feuille, saisie, resultat: ResultatMatrice, entrees: dict,
         _ecrire(feuille, f"{colonne_sans_solde}{quote_ligne}",
                 _nombre(ligne.absence_sans_solde))
 
-        sur_ligne_periode = ligne.dates_sur_ligne_periode
+        # Une période d'absence porte ses dates sur la ligne « motif d'absence ».
+        sur_ligne_periode = not ligne.motif_absence
         _ecrire(feuille, f"A{rangs['periode']}", ligne.motif_principal or None)
         _ecrire(feuille, f"A{rangs['absence']}", ligne.motif_absence or None)
         if sur_ligne_periode:

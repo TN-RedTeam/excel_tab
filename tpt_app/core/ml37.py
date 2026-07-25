@@ -45,13 +45,13 @@ def _periodes_completees(dossier: DossierML37) -> list[Periode]:
     return periodes
 
 
-def calculer(dossier: DossierML37, mode_compatibilite: bool = True) -> ResultatMatrice:
+def calculer(dossier: DossierML37) -> ResultatMatrice:
     """Calcule l'intégralité de la matrice ML37.
 
-    ``mode_compatibilite`` reproduit le classeur v6, dont les tests ``A_p =
-    "MALADIE"`` ne sont jamais vrais (le motif ``MALADIE`` appartient à la liste
-    de la ligne ``A_{p+1}``). Désactivé, une période portant un motif d'absence
-    produit un montant nul.
+    Les tests ``A_p = "MALADIE"`` du classeur ne sont jamais vrais — ``MALADIE``
+    appartient à la liste de la ligne ``A_{p+1}``. L'application applique la règle
+    voulue : une période portant un motif d'absence produit un montant nul
+    (cf. `ANOMALIES.md` §9.1).
     """
     periodes = _periodes_completees(dossier)
 
@@ -109,7 +109,8 @@ def calculer(dossier: DossierML37, mode_compatibilite: bool = True) -> ResultatM
         else:
             sans_solde = ZERO
 
-        neutralisee = (not mode_compatibilite) and periode.est_absence
+        # Une période d'absence n'est pas rémunérée.
+        neutralisee = periode.est_absence
 
         if neutralisee or motif == MOTIF_MALADIE:
             retabli_base = ZERO
@@ -148,7 +149,6 @@ def calculer(dossier: DossierML37, mode_compatibilite: bool = True) -> ResultatM
                 date_fin=periode.date_fin,
                 motif_principal=periode.motif_principal,
                 motif_absence=periode.motif_absence,
-                dates_sur_ligne_periode=periode.sur_ligne_periode,
                 nb_jours=nb_jours[i],
                 trentieme=e_p,
                 trentieme_hors_regime=e_hors,
