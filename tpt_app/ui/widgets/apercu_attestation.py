@@ -24,6 +24,9 @@ GRIS = QColor("#333333")
 #: Proportions d'une page A4 portrait.
 RATIO_A4 = 297 / 210
 
+#: Hauteur maximale du tableau des périodes, en proportion de la page.
+HAUTEUR_TABLEAU_MAX = 0.154
+
 TEXTE_INTRODUCTION = (
     "Nous soussignés Société AIR FRANCE , attestons le salaire perçu pour le(s) "
     "mois cité(s) en référence ci-dessous en activité partielle."
@@ -141,12 +144,21 @@ class ApercuAttestation(QWidget):
         self._dessiner_tableau(peintre, page, y + 0.040)
         self._dessiner_pied(peintre, page)
 
+    def _lignes_utiles(self) -> list:
+        """Les lignes à afficher : celles du gabarit, et davantage si besoin."""
+        return self._attestation.lignes[: self._attestation.nb_lignes_utiles]
+
     def _dessiner_tableau(self, peintre: QPainter, page: QRectF, haut: float) -> None:
         colonnes = (0.06, 0.175, 0.29, 0.50, 0.645, 0.755, 0.94)
         entetes = ("Du", "Au", "Salaires bruts soumis\nà cotisation (1)",
                    "Dont PUA / PFA", "Autres primes", "Taux d'activité\npartielle")
         hauteur_entete = 0.045
-        hauteur_ligne = 0.022
+
+        # Le tableau déclare toutes les périodes : au-delà des 7 lignes du
+        # gabarit, les lignes se resserrent pour que la page reste unique,
+        # exactement comme le PDF produit.
+        lignes = self._lignes_utiles()
+        hauteur_ligne = min(0.022, HAUTEUR_TABLEAU_MAX / max(len(lignes), 1))
 
         peintre.setPen(QPen(NOIR, 0.8))
         for index, libelle in enumerate(entetes):
@@ -160,7 +172,7 @@ class ApercuAttestation(QWidget):
                         libelle, 8, True, Qt.AlignCenter, NOIR, retour=True)
 
         y = haut + hauteur_entete
-        for ligne in self._attestation.lignes:
+        for ligne in lignes:
             valeurs = (
                 format_date(ligne.date_debut),
                 format_date(ligne.date_fin),

@@ -48,7 +48,9 @@ ABS_SANS_SOLDE = "Abs sans solde"
 
 NB_PERIODES_MAX = 10
 NB_PERIODES_MAX_ML35 = 8
-NB_LIGNES_ATTESTATION = 7
+#: Nombre de lignes de période du gabarit Vivinter. Ce n'est plus une limite :
+#: l'attestation est étendue autant que nécessaire (cf. `export/gabarit.py`).
+NB_LIGNES_ATTESTATION_MODELE = 7
 
 QUALIFICATIONS = ("PS", "PNC", "PNT")
 RISQUES = ("INCAPACITÉ", "INVALIDITÉ")
@@ -438,7 +440,11 @@ class ResultatAttestation:
     telephone: str = ""
     mail: str = MAIL_VIVINTER
     lignes: list[LigneAttestation] = field(default_factory=list)
-    #: Périodes au-delà de la 7ème, non déclarables sur ce formulaire.
-    periodes_non_declarees: list[LigneAttestation] = field(default_factory=list)
     #: Initiales du rédacteur, reportées dans la case « Cachet et Signature ».
     initiales_redacteur: str = ""
+
+    @property
+    def nb_lignes_utiles(self) -> int:
+        """Nombre de lignes à imprimer : au moins celles du gabarit d'origine."""
+        remplies = [ligne.index for ligne in self.lignes if not ligne.vide]
+        return max(NB_LIGNES_ATTESTATION_MODELE, max(remplies, default=0))

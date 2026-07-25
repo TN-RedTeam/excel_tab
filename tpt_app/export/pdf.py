@@ -16,31 +16,34 @@ from .. import mapping_classeur as mc
 from ..core.arrondi import format_date, format_euro, format_pourcent
 from ..core.models import Dossier, ResultatAttestation
 from ..core.moteur import ResultatDossier
+from . import gabarit
 from .excel import CHEMIN_TEMPLATE, ExportBloque
 from .rendu import rendre_page
 
-PLAGE_IMPRESSION = "A1:I55"
 
-
-def valeurs_attestation(attestation: ResultatAttestation) -> dict[str, str]:
+def valeurs_attestation(attestation: ResultatAttestation,
+                        supplement: int = 0) -> dict[str, str]:
     """Texte français de chaque cellule alimentée de l'attestation.
 
     Les dates sont systématiquement rendues au format ``JJ/MM/AAAA`` (§9.3), les
     montants au format ``#,##0.00 €`` et les taux en pourcentage à 2 décimales.
     """
+    def champ(nom: str) -> str:
+        """Coordonnée du champ, décalée si elle est sous le tableau étendu."""
+        return gabarit.decaler(mc.ATTESTATION_CHAMPS[nom], supplement)
+
     valeurs: dict[str, str] = {
-        mc.ATTESTATION_CHAMPS["nom"]: attestation.nom,
-        mc.ATTESTATION_CHAMPS["prenom"]: attestation.prenom,
-        mc.ATTESTATION_CHAMPS["num_secu"]: attestation.num_secu,
-        mc.ATTESTATION_CHAMPS["matricule"]: attestation.matricule,
-        mc.ATTESTATION_CHAMPS["num_dossier"]: attestation.num_dossier,
-        mc.ATTESTATION_CHAMPS["fait_a"]: attestation.fait_a,
-        mc.ATTESTATION_CHAMPS["fait_le"]: format_date(attestation.fait_le),
-        mc.ATTESTATION_CHAMPS["nom_redacteur"]: attestation.nom_redacteur,
-        mc.ATTESTATION_CHAMPS["telephone"]: attestation.telephone,
-        mc.ATTESTATION_CHAMPS["mail"]: attestation.mail,
-        mc.ATTESTATION_CHAMPS["initiales_redacteur"]:
-            attestation.initiales_redacteur,
+        champ("nom"): attestation.nom,
+        champ("prenom"): attestation.prenom,
+        champ("num_secu"): attestation.num_secu,
+        champ("matricule"): attestation.matricule,
+        champ("num_dossier"): attestation.num_dossier,
+        champ("fait_a"): attestation.fait_a,
+        champ("fait_le"): format_date(attestation.fait_le),
+        champ("nom_redacteur"): attestation.nom_redacteur,
+        champ("telephone"): attestation.telephone,
+        champ("mail"): attestation.mail,
+        champ("initiales_redacteur"): attestation.initiales_redacteur,
     }
 
     for libelle, coordonnee in mc.ATTESTATION_RISQUES.items():
@@ -52,8 +55,8 @@ def valeurs_attestation(attestation: ResultatAttestation) -> dict[str, str]:
         valeurs[coordonnee] = f"{marque} {libelle}"
 
     colonnes = mc.ATTESTATION_COLONNES
-    for rang, ligne in enumerate(attestation.lignes):
-        numero = mc.ATTESTATION_LIGNE_DEPART + rang
+    for rang, ligne in enumerate(attestation.lignes[:attestation.nb_lignes_utiles]):
+        numero = gabarit.ligne_periode(rang)
         valeurs[f"{colonnes['date_debut']}{numero}"] = format_date(ligne.date_debut)
         valeurs[f"{colonnes['date_fin']}{numero}"] = format_date(ligne.date_fin)
         if ligne.vide:
@@ -82,12 +85,18 @@ def exporter(dossier: Dossier, resultat: ResultatDossier, destination,
 
     classeur = openpyxl.load_workbook(CHEMIN_TEMPLATE)
     feuille = classeur[mc.FEUILLE_ATTESTATION]
-    titre = f"Attestation Vivinter — {resultat.attestation.nom} " \
-            f"{resultat.attestation.prenom}".strip()
+
+    # Le tableau est étendu au nombre de périodes ; la page reste unique, le
+    # rendu s'adaptant à l'échelle nécessaire pour tenir sur une A4.
+    attestation = resultat.attestation
+    supplement = gabarit.etendre_tableau_periodes(feuille, attestation.nb_lignes_utiles)
+
+    titre = f"Attestation Vivinter — {attestation.nom} " \
+            f"{attestation.prenom}".strip()
     return rendre_page(
         feuille,
-        PLAGE_IMPRESSION,
+        gabarit.plage_impression(supplement),
         destination,
-        valeurs=valeurs_attestation(resultat.attestation),
+        valeurs=valeurs_attestation(attestation, supplement),
         titre=titre,
     )

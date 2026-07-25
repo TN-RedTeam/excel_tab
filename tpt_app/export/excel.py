@@ -15,6 +15,7 @@ from typing import Optional
 import openpyxl
 
 from .. import mapping_classeur as mc
+from . import gabarit
 from ..core.arrondi import arrondi_centime, dec
 from ..core.models import (
     Dossier,
@@ -202,6 +203,9 @@ def _remplir_ml35(feuille, saisie, resultat: ResultatML35) -> None:
 
 
 def _remplir_attestation(feuille, attestation: ResultatAttestation) -> None:
+    """Remplit l'attestation, en étendant le tableau au nombre de périodes."""
+    supplement = gabarit.etendre_tableau_periodes(feuille, attestation.nb_lignes_utiles)
+
     valeurs = {
         "nom": attestation.nom,
         "prenom": attestation.prenom,
@@ -216,7 +220,9 @@ def _remplir_attestation(feuille, attestation: ResultatAttestation) -> None:
         "initiales_redacteur": attestation.initiales_redacteur,
     }
     for nom, coordonnee in mc.ATTESTATION_CHAMPS.items():
-        _ecrire(feuille, coordonnee, valeurs.get(nom) or None)
+        # Les champs situés sous le tableau descendent d'autant de lignes.
+        _ecrire(feuille, gabarit.decaler(coordonnee, supplement),
+                valeurs.get(nom) or None)
 
     # Le formulaire papier propose les options côte à côte : on marque la retenue.
     for libelle, coordonnee in mc.ATTESTATION_RISQUES.items():
@@ -227,9 +233,9 @@ def _remplir_attestation(feuille, attestation: ResultatAttestation) -> None:
         marque = "(X)" if libelle == attestation.qualification else "( )"
         _ecrire(feuille, coordonnee, f"{marque} {libelle}")
 
-    for rang, ligne in enumerate(attestation.lignes):
-        numero = mc.ATTESTATION_LIGNE_DEPART + rang
-        colonnes = mc.ATTESTATION_COLONNES
+    colonnes = mc.ATTESTATION_COLONNES
+    for rang, ligne in enumerate(attestation.lignes[:attestation.nb_lignes_utiles]):
+        numero = gabarit.ligne_periode(rang)
         _ecrire(feuille, f"{colonnes['date_debut']}{numero}", ligne.date_debut)
         _ecrire(feuille, f"{colonnes['date_fin']}{numero}", ligne.date_fin)
         # Colonne D : le libellé prime toujours sur le montant.
@@ -251,9 +257,8 @@ def exporter(dossier: Dossier, resultat: ResultatDossier, destination,
              ignorer_controles: bool = False) -> Path:
     """Produit le classeur rempli à partir du template embarqué.
 
-    Lève ``ExportBloque`` si des périodes au-delà de la 7ème sont renseignées
-    (§9.2), sauf si ``ignorer_controles`` est vrai — cas de l'attestation de
-    continuation, qui déclare précisément ces périodes-là.
+    Le tableau des périodes est étendu au nombre de périodes du dossier : toutes
+    sont déclarées, sans la limite de 7 lignes du gabarit d'origine.
     """
     if not ignorer_controles:
         bloquantes = [a for a in resultat.anomalies_export if a.bloquante]

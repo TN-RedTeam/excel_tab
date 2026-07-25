@@ -194,7 +194,7 @@ final.
 
 ### Ce que l'attestation reprend automatiquement
 
-Pour chacune des **7 lignes**, l'application prend la période de même rang dans
+Pour chaque ligne, l'application prend la période de même rang dans
 ML36 ; si elle est vide, celle de ML37. La sélection est faite **ligne par
 ligne** : une attestation peut mélanger des lignes ML36 et ML37, chacune avec son
 propre montant et son propre taux.
@@ -223,10 +223,16 @@ recalcul.
 
 ### Plus de 7 périodes
 
-L'attestation Vivinter ne comporte que 7 lignes. Si vous avez saisi davantage de
-périodes, **l'export est bloqué** et l'application vous indique lesquelles ne
-seraient pas déclarées. Un bouton **« Attestation de continuation »** produit
-alors un second document pour les périodes restantes.
+**Toutes vos périodes sont déclarées**, quel qu'en soit le nombre. Le formulaire
+Vivinter n'en prévoyait que 7 : au-delà, l'application ajoute les lignes
+nécessaires au tableau et décale le bas du document en conséquence. Le PDF tient
+toujours sur **une seule page A4** — les lignes se resserrent légèrement.
+
+Un dossier de 7 périodes ou moins produit un document identique à celui du
+formulaire d'origine.
+
+Le nombre de périodes reste limité à **10 par dossier** (8 en ML35) : c'est la
+structure des matrices du classeur qui l'impose, pas l'attestation.
 
 ---
 

@@ -16,12 +16,9 @@ from .arrondi import ZERO, dec
 from .models import (
     MOTIFS_ABSENCE,
     MOTIFS_PRINCIPAUX,
-    NB_LIGNES_ATTESTATION,
     NB_PERIODES_MAX,
     NB_PERIODES_MAX_ML35,
     REGIME_ML35,
-    REGIME_ML36,
-    REGIME_ML37,
     Dossier,
     Periode,
 )
@@ -215,25 +212,12 @@ def controler(dossier: Dossier) -> list[Anomalie]:
 
 
 def controler_export(dossier: Dossier) -> list[Anomalie]:
-    """Contrôles supplémentaires bloquant l'export de l'attestation.
+    """Contrôles supplémentaires avant production de l'attestation.
 
-    Le formulaire Vivinter ne comporte que 7 lignes alors que les matrices en
-    gèrent 10 : au-delà, l'export est bloqué et une attestation de continuation
-    doit être générée pour les périodes restantes.
+    Le gabarit Vivinter ne comportait que 7 lignes de période ; l'attestation est
+    désormais étendue à autant de lignes que le dossier compte de périodes, si
+    bien qu'aucune période n'est plus écartée de la déclaration. Le nombre de
+    périodes reste en revanche borné par la structure des matrices du classeur,
+    ce que contrôle déjà `controler`.
     """
-    anomalies: list[Anomalie] = []
-    for regime, matrice in ((REGIME_ML36, dossier.ml36), (REGIME_ML37, dossier.ml37)):
-        surplus = [
-            index + 1
-            for index, periode in enumerate(matrice.periodes[:NB_PERIODES_MAX])
-            if index >= NB_LIGNES_ATTESTATION and periode.renseignee
-        ]
-        if surplus:
-            numeros = ", ".join(str(n) for n in surplus)
-            anomalies.append(Anomalie(
-                "periodes",
-                f"{regime} : l'attestation Vivinter ne comporte que "
-                f"{NB_LIGNES_ATTESTATION} lignes. Les périodes {numeros} ne seraient "
-                f"pas déclarées. Générez une attestation de continuation.",
-            ))
-    return anomalies
+    return []
