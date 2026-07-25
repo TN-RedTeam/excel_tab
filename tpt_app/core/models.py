@@ -46,6 +46,37 @@ MOTIFS_ABSENCE = {
 #: Libellé exact du motif déclenchant la déduction « absence sans solde ».
 ABS_SANS_SOLDE = "Abs sans solde"
 
+
+def motifs_proposes(regime: str) -> tuple[str, ...]:
+    """Tous les motifs d'un régime, activité et absences confondues.
+
+    Le classeur séparait le motif d'activité et le motif d'absence sur deux
+    lignes distinctes, donc deux listes déroulantes. Une période ne pouvant
+    porter qu'un seul motif, l'application n'en propose qu'une.
+    """
+    return MOTIFS_PRINCIPAUX.get(regime, ()) + MOTIFS_ABSENCE.get(regime, ())
+
+
+def decomposer_motif(regime: str, motif: str) -> tuple[str, str]:
+    """Traduit le motif choisi en couple (motif principal, motif d'absence).
+
+    Un motif d'absence laisse le motif principal au régime lui-même : c'est ce
+    que porte la ligne « période » de la matrice, la ligne « motif d'absence »
+    recevant l'absence et les dates.
+    """
+    motif = (motif or "").strip()
+    if not motif:
+        return ("", "")
+    if motif in MOTIFS_ABSENCE.get(regime, ()):
+        principal = MOTIFS_PRINCIPAUX.get(regime, ("",))[0]
+        return (principal, motif)
+    return (motif, "")
+
+
+def recomposer_motif(motif_principal: str, motif_absence: str) -> str:
+    """Opération inverse : le motif à présenter dans la liste déroulante."""
+    return (motif_absence or motif_principal or "").strip()
+
 NB_PERIODES_MAX = 10
 NB_PERIODES_MAX_ML35 = 8
 #: Nombre de lignes de période du gabarit Vivinter. Ce n'est plus une limite :
@@ -159,10 +190,14 @@ class DossierML36:
     tmf_100: Decimal = ZERO                   # B10
     p_transfert_100: Decimal = ZERO           # B11
     bases_libres: list[Decimal] = field(default_factory=lambda: [ZERO, ZERO, ZERO])  # B12:B14
+    #: Intitulés des lignes libres, écrits en colonne A du classeur (A12:A14).
+    libelles_bases_libres: list[str] = field(default_factory=lambda: ["", "", ""])
 
     maj_nuit: Decimal = ZERO                  # E10
     maj_ferie: Decimal = ZERO                 # E11
     majorations_libres: list[Decimal] = field(default_factory=lambda: [ZERO, ZERO, ZERO])  # E12:E14
+    #: Intitulés des lignes libres de majorations (D12:D14).
+    libelles_majorations_libres: list[str] = field(default_factory=lambda: ["", "", ""])
 
     paniers_r226: Decimal = ZERO              # E16
     montant_siaci: Decimal = ZERO             # I17
@@ -201,10 +236,14 @@ class DossierML37:
     tmf_100: Decimal = ZERO                   # B11
     p_transfert_100: Decimal = ZERO           # B12
     bases_libres: list[Decimal] = field(default_factory=lambda: [ZERO, ZERO, ZERO])  # B13:B15
+    #: Intitulés des lignes libres, écrits en colonne A du classeur (A13:A15).
+    libelles_bases_libres: list[str] = field(default_factory=lambda: ["", "", ""])
 
     remu_ca: Decimal = ZERO                   # E11
     maj_nuit: Decimal = ZERO                  # E12
     majorations_libres: list[Decimal] = field(default_factory=lambda: [ZERO, ZERO, ZERO])  # E13:E15
+    #: Intitulés des lignes libres de majorations (D13:D15).
+    libelles_majorations_libres: list[str] = field(default_factory=lambda: ["", "", ""])
 
     paniers_r226: Decimal = ZERO              # E17
     montant_siaci: Decimal = ZERO             # J19

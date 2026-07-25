@@ -126,6 +126,20 @@ def feuille_de_style(palette: Palette, taille_police: int = 10) -> str:
         background-color: {palette.fond_calcule};
         color: {palette.texte_discret};
     }}
+    /* Intitulé de ligne libre : se lit comme un libellé, s'édite comme un champ. */
+    QLineEdit[intitule="true"] {{
+        background: transparent;
+        border: 1px solid transparent;
+        color: {palette.texte_discret};
+        font-weight: 600;
+    }}
+    QLineEdit[intitule="true"]:hover {{ border: 1px dashed {palette.bordure}; }}
+    QLineEdit[intitule="true"]:focus {{
+        background-color: {palette.fond_champ};
+        border: 1px solid {palette.accent};
+        color: {palette.texte};
+    }}
+
     /* Ni « ::drop-down » ni « ::down-arrow » ne sont redéfinis : styler ces
        sous-contrôles oblige Qt à fournir une image et fait disparaître la
        flèche, ce qui donne à la liste déroulante l'apparence d'un champ en

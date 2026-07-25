@@ -21,6 +21,19 @@ class _BlocRegime(QWidget):
         super().__init__()
         self.page = page
         self.champs: dict[str, SaisieMontant] = {}
+        #: Intitulés modifiables des lignes libres, par clef de champ.
+        self.intitules: dict[str, object] = {}
+
+    def _ligne_libre(self, formulaire: Formulaire, clef: str,
+                     gabarit: str) -> SaisieMontant:
+        """Ligne dont le montant *et* l'intitulé sont saisis par l'utilisateur."""
+        editeur = SaisieMontant()
+        editeur.valeur_modifiee.connect(self.page.signaler)
+        _, intitule = formulaire.ajouter_intitule_libre(gabarit, editeur)
+        intitule.textEdited.connect(self.page.signaler)
+        self.champs[clef] = editeur
+        self.intitules[clef] = intitule
+        return editeur
 
     def _montant(self, formulaire: Formulaire, clef: str, libelle: str,
                  aide: str = "") -> SaisieMontant:
@@ -60,7 +73,8 @@ class BlocML36ML37(_BlocRegime):
         self._montant(base, "tmf_100", "TMF à 100 %")
         self._montant(base, "p_transfert_100", "P. TRANSFERT à 100 %")
         for index in range(3):
-            self._montant(base, f"base_libre_{index}", f"Ligne libre {index + 1}")
+            self._ligne_libre(base, f"base_libre_{index}",
+                              f"Ligne libre {index + 1}")
         self.total_base = ValeurCalculee()
         base.ajouter("Base salariale", self.total_base,
                      "Somme des lignes ci-dessus.")
@@ -75,8 +89,8 @@ class BlocML36ML37(_BlocRegime):
             self._montant(majorations, "remu_ca", "REMU CA")
             self._montant(majorations, "maj_nuit", "MAJ NUIT")
         for index in range(3):
-            self._montant(majorations, f"majoration_libre_{index}",
-                          f"Ligne libre {index + 1}")
+            self._ligne_libre(majorations, f"majoration_libre_{index}",
+                              f"Ligne libre {index + 1}")
         self.total_majorations = ValeurCalculee()
         majorations.ajouter("Total majorations", self.total_majorations)
         self._montant(majorations, "paniers_r226", "PANIERS + R226")
@@ -111,6 +125,13 @@ class BlocML36ML37(_BlocRegime):
                 valeur = getattr(matrice, clef, ZERO)
             editeur.definir_valeur(valeur)
 
+        for clef, intitule in self.intitules.items():
+            famille, index = clef.rsplit("_", 1)
+            source = ("libelles_bases_libres" if famille == "base_libre"
+                      else "libelles_majorations_libres")
+            libelles = list(getattr(matrice, source, [])) + ["", "", ""]
+            intitule.setText(libelles[int(index)])
+
     def appliquer(self, matrice) -> None:
         matrice.taux_initial = self.taux_initial.valeur()
         matrice.taux_tpt = self.taux_tpt.valeur()
@@ -124,6 +145,14 @@ class BlocML36ML37(_BlocRegime):
                 setattr(matrice, clef, editeur.valeur())
         matrice.bases_libres = bases
         matrice.majorations_libres = majorations
+
+        libelles_bases, libelles_majorations = [""] * 3, [""] * 3
+        for clef, intitule in self.intitules.items():
+            famille, index = clef.rsplit("_", 1)
+            cible = (libelles_bases if famille == "base_libre" else libelles_majorations)
+            cible[int(index)] = intitule.text().strip()
+        matrice.libelles_bases_libres = libelles_bases
+        matrice.libelles_majorations_libres = libelles_majorations
 
     def actualiser(self, resultat) -> None:
         self.total_base.definir_valeur(resultat.base_salariale)

@@ -83,12 +83,19 @@ class Champ(QWidget):
 
 
 class SaisieTexte(QLineEdit):
-    """Champ texte simple."""
+    """Champ texte simple.
 
-    def __init__(self, gabarit: str = "", parent=None):
+    La largeur minimale est dimensionnée pour qu'un nom complet reste lisible
+    sans avoir à faire défiler le contenu du champ.
+    """
+
+    LARGEUR_MINIMALE = 280
+
+    def __init__(self, gabarit: str = "", parent=None, largeur: int = 0):
         super().__init__(parent)
         if gabarit:
             self.setPlaceholderText(gabarit)
+        self.setMinimumWidth(largeur or self.LARGEUR_MINIMALE)
 
 
 class SaisieMontant(QLineEdit):
@@ -293,6 +300,25 @@ class Formulaire(QFormLayout):
         champ = Champ(libelle, editeur, aide)
         self.addRow(libelle, champ)
         return champ
+
+    def ajouter_intitule_libre(self, gabarit: str, editeur: QWidget,
+                               aide: str = "") -> tuple[Champ, QLineEdit]:
+        """Ajoute une ligne dont l'**intitulé** est lui-même saisissable.
+
+        Les lignes libres des matrices n'ont pas de libellé imposé par le
+        classeur : l'utilisateur nomme lui-même la rubrique, et le nom est reporté
+        dans la cellule d'en regard à l'export.
+        """
+        intitule = QLineEdit()
+        intitule.setPlaceholderText(gabarit)
+        intitule.setAlignment(Qt.AlignRight)
+        intitule.setProperty("intitule", "true")
+        # Assez large pour un intitulé métier complet : sans cela le texte est
+        # rogné à gauche, l'alignement à droite le faisant sortir du champ.
+        intitule.setMinimumWidth(190)
+        champ = Champ(gabarit, editeur, aide)
+        self.addRow(intitule, champ)
+        return champ, intitule
 
     def definir_ligne_visible(self, champ: Champ, visible: bool) -> None:
         """Masque une ligne entière, libellé compris, sans laisser de trou."""

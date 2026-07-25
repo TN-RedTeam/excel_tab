@@ -2,6 +2,54 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.2.0] — 2026-07-25
+
+### Ajouté
+
+- **Intitulés des lignes libres modifiables** dans « Rémunération ». Le nom est
+  enregistré avec le dossier et reporté dans la cellule d'en regard du classeur
+  exporté (`A12:A14` et `D12:D14` en ML36, `A13:A15` et `D13:D15` en ML37) ;
+  l'import le relit.
+
+### Modifié
+
+- **Un seul menu de motifs** dans « Périodes », réunissant l'activité et les
+  absences du régime. Le classeur les séparait sur deux lignes, donc deux listes ;
+  une période ne portant qu'un motif, une seule liste suffit.
+- Une période ajoutée démarre avec un **motif vide**.
+- **G27 aligné sur le reste du tableau.** Le gabarit laissait cette cellule en
+  police par défaut et privait `B27`/`C27` de bordures horizontales, ce qui se
+  voyait dès la deuxième période : toutes les lignes de période reçoivent
+  désormais la même mise en forme.
+- Champs de l'attestation élargis : un nom de rédacteur complet reste lisible.
+- « Recalculer » quitte la barre d'outils — tout est déjà recalculé à chaque
+  frappe. `F5` reste disponible en filet de sécurité.
+- Le **mode de compatibilité v6** est grisé et porte la mention « sans effet
+  ici » tant que les deux modes concordent, c'est-à-dire sur tout dossier saisi
+  dans l'application.
+
+### Robustesse en usage partagé
+
+- **La base de dossiers est strictement personnelle** (`%APPDATA%\CalculateurTPT\`),
+  jamais à côté de l'exécutable. SQLite ne verrouille pas de façon fiable sur un
+  partage réseau : une base commune aurait été corrompue à la première écriture
+  simultanée.
+- SQLite passe en journal **WAL** avec attente de 15 s sur verrou.
+- **Écriture atomique** des exports : le fichier est produit dans un temporaire
+  puis mis en place d'un seul geste. Une coupure réseau ne laisse jamais un PDF
+  tronqué à la place d'une version valide.
+- **Plus d'écrasement silencieux** : un nom déjà pris est numéroté (`… (2).pdf`).
+- Un fichier ouvert dans Acrobat ou Excel donne un message explicite au lieu
+  d'un code d'erreur système.
+
+### Optimisé
+
+- Le fichier Excel exporté passe de **320 Ko à 45 Ko (−86 %)** : l'onglet
+  « mode d'emploi » du classeur, qui pèse à lui seul 280 Ko d'images et n'a
+  aucun rôle dans une attestation, est retiré de l'export.
+- Les flux du PDF sont compressés. Une attestation pèse ~55 Ko, soit près de
+  18 000 attestations par gigaoctet.
+
 ## [1.1.0] — 2026-07-25
 
 ### Modifié

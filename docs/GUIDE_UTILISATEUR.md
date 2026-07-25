@@ -14,11 +14,17 @@ administrateur, aucun accès Internet, et Microsoft Office n'est pas requis**.
    clé USB.
 2. Double-cliquez dessus.
 
-Au premier lancement, l'application crée un fichier `app.db` à côté de
-l'exécutable : c'est l'historique local de vos dossiers. Si l'emplacement n'est
-pas accessible en écriture (partage protégé, clé en lecture seule), la base est
-créée dans votre profil Windows, sous
-`%APPDATA%\CalculateurTPT\`.
+### Plusieurs personnes en même temps
+
+L'exécutable peut être posé sur un **partage réseau** et lancé simultanément par
+plusieurs personnes, sans risque : le fichier n'est jamais modifié, il est
+seulement lu.
+
+Votre historique de dossiers est en revanche **personnel**. Il est enregistré
+dans votre profil Windows, sous `%APPDATA%\CalculateurTPT\app.db`, jamais à
+côté de l'exécutable. Deux personnes ne peuvent donc pas s'écraser mutuellement
+leurs dossiers. Pour transmettre un dossier à un collègue, exportez-le en Excel :
+il pourra le réimporter.
 
 > `app.db` contient des données personnelles de salariés. Il suit les mêmes
 > règles de conservation et de confidentialité que les classeurs qu'il remplace.
@@ -39,7 +45,7 @@ chaque frappe**, il n'y a pas de bouton « Calculer ».
 | `Ctrl+S` | Enregistrer le dossier |
 | `Ctrl+E` | Exporter en Excel |
 | `Ctrl+P` | Exporter en PDF |
-| `F5` | Forcer le recalcul |
+| `F5` | Forcer le recalcul (filet de sécurité — le calcul est déjà permanent) |
 
 La **barre d'état**, en bas, rappelle en permanence le régime actif, le mois
 traité, le nombre de périodes saisies et la validité du dossier.
@@ -106,6 +112,13 @@ sur l'attestation ; il est désormais calculé.
 
 Les taux se saisissent en pourcentage : tapez `40` pour 40 %.
 
+### Nommer les lignes libres
+
+Chaque rubrique comporte **trois lignes libres**, dont vous choisissez
+l'intitulé : cliquez sur « Ligne libre 1 » et tapez le nom de la rubrique
+(« PRIME ANCIENNETÉ », « MAJ DIMANCHE »…). L'intitulé est enregistré avec le
+dossier et reporté dans la cellule correspondante du fichier Excel exporté.
+
 ---
 
 ## 6. Étape 4 — Périodes
@@ -116,10 +129,19 @@ Une ligne = une période continue, avec :
 
 | Colonne | Contenu |
 |---|---|
-| **Motif principal** | `ML36`, ou `ML37` / `CA`, ou `ML35` / `CA` selon le régime |
-| **Motif d'absence** | à ne renseigner que si la période est une absence |
+| **Motif** | un seul menu, réunissant l'activité et les absences du régime |
 | **Du** / **Au** | dates au format `JJ/MM/AAAA`, calendrier français |
 | **Nb jours**, **30ème** | calculés |
+
+Le menu « Motif » propose, selon le régime :
+
+| Régime | Motifs proposés |
+|---|---|
+| **ML36** | `ML36`, `Maladie`, `CA / JEM`, `Autres absences`, `Abs sans solde` |
+| **ML37** | `ML37`, `CA`, `MALADIE`, `JEM`, `Abs sans solde` |
+| **ML35** | `ML35`, `CA` |
+
+Une période ajoutée démarre avec un **motif vide** : à vous de le choisir.
 
 Les boutons **Ajouter**, **Supprimer**, **Monter** et **Descendre** gèrent la
 liste.
@@ -175,6 +197,10 @@ Le mode est réglable dans la barre du haut. **Il est activé par défaut**, afi
 que l'application reproduise le classeur tant que le service paie n'a pas
 tranché. Voir `ANOMALIES.md`, §9.1.
 
+> Sur un dossier saisi dans l'application, ce réglage ne change **rien** : la
+> case est alors grisée et porte la mention « sans effet ici ». Elle ne
+> redevient active que sur un dossier importé où les deux modes divergent.
+
 ---
 
 ## 8. Étape 6 — Attestation
@@ -215,6 +241,11 @@ sont nommés automatiquement :
 ```
 ATTESTATION_VIVINTER_{NOM}_{MATRICULE}_{AAAA-MM}.pdf
 ```
+
+Si un fichier du même nom existe déjà, l'application **numérote** le nouveau
+(`… (2).pdf`) plutôt que d'écraser le précédent. Un fichier resté ouvert dans
+Acrobat ou Excel donne un message explicite, et l'ancienne version reste
+intacte : rien n'est jamais écrit à moitié.
 
 Le PDF tient sur une page A4 et reproduit la charte Vivinter. Le fichier Excel est
 le classeur d'origine, mise en forme intacte, dont toutes les formules ont été
@@ -271,5 +302,14 @@ Ils sont dans `app.db`, à côté de l'exécutable ou dans
 poste.
 
 **Puis-je travailler à plusieurs sur la même base ?**
-Non. `app.db` est une base locale, prévue pour un poste. Pour partager un dossier,
-exportez-le en Excel et réimportez-le.
+Chacun a la sienne, dans son profil Windows. Pour partager un dossier, exportez-le
+en Excel et faites-le réimporter par votre collègue.
+
+**Les PDF vont-ils saturer le disque ?**
+Non. Une attestation PDF pèse environ **55 Ko**, soit près de 18 000 attestations
+par gigaoctet. Le fichier Excel pèse **45 Ko** — il en faisait 320 avant que
+l'onglet « mode d'emploi » du classeur, inutile à une attestation, ne soit retiré
+de l'export.
+
+**Deux personnes peuvent-elles lancer l'outil depuis le même partage réseau ?**
+Oui. L'exécutable est seulement lu, jamais modifié.

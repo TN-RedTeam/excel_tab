@@ -20,20 +20,19 @@ from .ui.main_window import FenetrePrincipale
 
 
 def dossier_donnees() -> Path:
-    """Emplacement inscriptible de la base locale."""
-    if getattr(sys, "frozen", False):
-        base = Path(sys.executable).resolve().parent
-    else:
-        base = Path.cwd()
-    try:
-        temoin = base / ".ecriture"
-        temoin.touch()
-        temoin.unlink()
-        return base
-    except OSError:
-        profil = Path(os.environ.get("APPDATA") or Path.home()) / "CalculateurTPT"
-        profil.mkdir(parents=True, exist_ok=True)
-        return profil
+    """Emplacement de la base locale, **toujours dans le profil utilisateur**.
+
+    L'exécutable est destiné à être posé sur un partage réseau et lancé par
+    plusieurs personnes en même temps. Écrire la base à côté de lui les ferait
+    toutes pointer sur le même fichier SQLite via SMB, où le verrouillage n'est
+    pas fiable : corruption assurée à la première écriture simultanée. Chaque
+    utilisateur dispose donc de son propre historique, dans son profil Windows.
+    """
+    racine = os.environ.get("APPDATA") or os.environ.get("XDG_DATA_HOME")
+    base = Path(racine) if racine else Path.home() / ".local" / "share"
+    dossier = base / "CalculateurTPT"
+    dossier.mkdir(parents=True, exist_ok=True)
+    return dossier
 
 
 def main() -> int:

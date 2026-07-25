@@ -387,8 +387,9 @@ def rendre_page(feuille, plage: str, destination, valeurs: Optional[dict[str, st
                   utile_hauteur / rendu.grille.hauteur)
 
     chemin = Path(destination)
-    chemin.parent.mkdir(parents=True, exist_ok=True)
-    canevas = rl_canvas.Canvas(str(chemin), pagesize=A4)
+    # pageCompression réduit le PDF d'environ 40 % sans perte : les flux de
+    # contenu sont compressés, les polices restant sous-ensemblées.
+    canevas = rl_canvas.Canvas(str(chemin), pagesize=A4, pageCompression=1)
     canevas.setTitle(titre or chemin.stem)
     rendu.dessiner(canevas, marge_gauche, hauteur_page - marge_haut, echelle)
     canevas.showPage()

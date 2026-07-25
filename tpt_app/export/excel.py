@@ -16,6 +16,7 @@ import openpyxl
 
 from .. import mapping_classeur as mc
 from . import gabarit
+from .ecriture import ecrire_atomiquement
 from ..core.arrondi import arrondi_centime, dec
 from ..core.models import (
     Dossier,
@@ -58,7 +59,8 @@ def _ecrire(feuille, coordonnee: str, valeur) -> None:
 def _remplir_matrice(feuille, saisie, resultat: ResultatMatrice, entrees: dict,
                      bases_libres: tuple, majorations_libres: tuple, calcules: dict,
                      quotes: dict, ligne_quote_depart: int, colonne_sans_solde: str,
-                     lignes_periode, ligne_recap_depart: int, avec_taxation: bool) -> None:
+                     lignes_periode, ligne_recap_depart: int, avec_taxation: bool,
+                     libelles_bases: tuple = (), libelles_majorations: tuple = ()) -> None:
     """Écrit une matrice ML36 ou ML37 en valeurs."""
     salarie = saisie.salarie
     valeurs_entrees = {
@@ -92,6 +94,14 @@ def _remplir_matrice(feuille, saisie, resultat: ResultatMatrice, entrees: dict,
         _ecrire(feuille, coordonnee, _nombre(valeur))
     for coordonnee, valeur in zip(majorations_libres, saisie.majorations_libres):
         _ecrire(feuille, coordonnee, _nombre(valeur))
+
+    # Intitulés des lignes libres : les cellules d'en regard sont vides dans le
+    # gabarit, elles accueillent donc le libellé saisi par l'utilisateur.
+    for coordonnee, libelle in zip(libelles_bases, saisie.libelles_bases_libres):
+        _ecrire(feuille, coordonnee, libelle or None)
+    for coordonnee, libelle in zip(libelles_majorations,
+                                   saisie.libelles_majorations_libres):
+        _ecrire(feuille, coordonnee, libelle or None)
 
     for nom, coordonnee in calcules.items():
         _ecrire(feuille, coordonnee, _nombre(getattr(resultat, nom)))
@@ -205,6 +215,7 @@ def _remplir_ml35(feuille, saisie, resultat: ResultatML35) -> None:
 def _remplir_attestation(feuille, attestation: ResultatAttestation) -> None:
     """Remplit l'attestation, en étendant le tableau au nombre de périodes."""
     supplement = gabarit.etendre_tableau_periodes(feuille, attestation.nb_lignes_utiles)
+    gabarit.uniformiser_lignes_periode(feuille, attestation.nb_lignes_utiles)
 
     valeurs = {
         "nom": attestation.nom,
@@ -273,6 +284,8 @@ def exporter(dossier: Dossier, resultat: ResultatDossier, destination,
         mc.ML36_CALCULES, mc.ML36_QUOTES, mc.ML36_LIGNE_QUOTE_DEPART,
         mc.ML36_COLONNE_ABSENCE_SANS_SOLDE, mc.ml36_lignes_periode,
         mc.ML36_LIGNE_RECAP_DEPART, avec_taxation=False,
+        libelles_bases=mc.ML36_LIBELLES_BASES_LIBRES,
+        libelles_majorations=mc.ML36_LIBELLES_MAJORATIONS_LIBRES,
     )
     _remplir_matrice(
         classeur[mc.FEUILLE_ML37], dossier.ml37, resultat.ml37,
@@ -280,13 +293,13 @@ def exporter(dossier: Dossier, resultat: ResultatDossier, destination,
         mc.ML37_CALCULES, mc.ML37_QUOTES, mc.ML37_LIGNE_QUOTE_DEPART,
         mc.ML37_COLONNE_ABSENCE_SANS_SOLDE, mc.ml37_lignes_periode,
         mc.ML37_LIGNE_RECAP_DEPART, avec_taxation=True,
+        libelles_bases=mc.ML37_LIBELLES_BASES_LIBRES,
+        libelles_majorations=mc.ML37_LIBELLES_MAJORATIONS_LIBRES,
     )
     if resultat.ml35 is not None:
         _remplir_ml35(classeur[mc.FEUILLE_ML35], dossier.ml35, resultat.ml35)
 
     _remplir_attestation(classeur[mc.FEUILLE_ATTESTATION], resultat.attestation)
+    gabarit.alleger_classeur(classeur)
 
-    chemin = Path(destination)
-    chemin.parent.mkdir(parents=True, exist_ok=True)
-    classeur.save(chemin)
-    return chemin
+    return ecrire_atomiquement(destination, classeur.save)
