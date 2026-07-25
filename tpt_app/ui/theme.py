@@ -126,7 +126,10 @@ def feuille_de_style(palette: Palette, taille_police: int = 10) -> str:
         background-color: {palette.fond_calcule};
         color: {palette.texte_discret};
     }}
-    QComboBox::drop-down {{ border: none; width: {UNITE * 5}px; }}
+    /* Ni « ::drop-down » ni « ::down-arrow » ne sont redéfinis : styler ces
+       sous-contrôles oblige Qt à fournir une image et fait disparaître la
+       flèche, ce qui donne à la liste déroulante l'apparence d'un champ en
+       lecture seule. Le rendu natif du style de base est conservé. */
 
     QPushButton {{
         background-color: {palette.fond_secondaire};

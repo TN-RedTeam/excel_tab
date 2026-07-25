@@ -9,6 +9,7 @@ attestation peut donc mélanger des lignes ML36 et des lignes ML37.
 from __future__ import annotations
 
 import datetime as dt
+import re
 from decimal import Decimal
 from typing import Optional
 
@@ -80,6 +81,27 @@ def _construire_ligne(index: int, source: str, resultat, taux: Decimal) -> Ligne
     return ligne
 
 
+#: Civilités à ignorer pour ne garder que le nom et le prénom du rédacteur.
+CIVILITES = {"m", "m.", "mr", "mr.", "mme", "mme.", "mlle", "mlle.", "dr", "dr."}
+
+
+def initiales(nom_complet: str) -> str:
+    """Initiales d'un rédacteur : « Jean MARTIN » → ``J.M.``.
+
+    Les civilités (M., Mme…) sont écartées afin que « M. MARTIN » donne ``M.``
+    et non ``M.M.``. Les prénoms composés sont conservés : « Anne-Marie DUPONT »
+    donne ``A.M.D.``.
+    """
+    lettres = []
+    for mot in re.split(r"[\s\-']+", (nom_complet or "").strip()):
+        if not mot or mot.lower() in CIVILITES:
+            continue
+        premier = mot[0]
+        if premier.isalpha():
+            lettres.append(premier.upper())
+    return "".join(f"{lettre}." for lettre in lettres)
+
+
 def _premier_non_vide(*valeurs: str) -> str:
     for valeur in valeurs:
         if valeur:
@@ -139,6 +161,7 @@ def construire(
         mail=parametres.mail,
         lignes=lignes,
         periodes_non_declarees=hors_formulaire,
+        initiales_redacteur=initiales(parametres.nom_redacteur),
     )
 
 

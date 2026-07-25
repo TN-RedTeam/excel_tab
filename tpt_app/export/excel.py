@@ -213,6 +213,7 @@ def _remplir_attestation(feuille, attestation: ResultatAttestation) -> None:
         "nom_redacteur": attestation.nom_redacteur,
         "telephone": attestation.telephone,
         "mail": attestation.mail,
+        "initiales_redacteur": attestation.initiales_redacteur,
     }
     for nom, coordonnee in mc.ATTESTATION_CHAMPS.items():
         _ecrire(feuille, coordonnee, valeurs.get(nom) or None)

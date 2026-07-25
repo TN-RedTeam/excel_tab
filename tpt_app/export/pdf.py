@@ -39,6 +39,8 @@ def valeurs_attestation(attestation: ResultatAttestation) -> dict[str, str]:
         mc.ATTESTATION_CHAMPS["nom_redacteur"]: attestation.nom_redacteur,
         mc.ATTESTATION_CHAMPS["telephone"]: attestation.telephone,
         mc.ATTESTATION_CHAMPS["mail"]: attestation.mail,
+        mc.ATTESTATION_CHAMPS["initiales_redacteur"]:
+            attestation.initiales_redacteur,
     }
 
     for libelle, coordonnee in mc.ATTESTATION_RISQUES.items():

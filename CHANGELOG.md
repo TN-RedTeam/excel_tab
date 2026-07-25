@@ -2,6 +2,36 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.0.1] — 2026-07-25
+
+Retours d'usage sur la première présentation.
+
+### Corrigé
+
+- **Les listes déroulantes des motifs ne montraient plus leur flèche.** Styler
+  les sous-contrôles `::drop-down` et `::down-arrow` d'un `QComboBox` oblige Qt
+  à fournir une image ; faute de quoi la flèche disparaît et le champ passe pour
+  une zone en lecture seule. Les motifs d'absence étaient donc bien proposés mais
+  paraissaient inaccessibles. Le rendu natif est rétabli.
+- **Le calendrier s'ouvrait sur janvier 1900** sur un champ de date vide. Il
+  s'ouvre désormais sur le mois et l'année en cours ; tourner la page ne
+  remplit pas le champ.
+- **La saisie d'une date au clavier était bloquée** sur un champ vide : la
+  première frappe l'amorce maintenant à la date du jour, puis la saisie se
+  poursuit normalement.
+- Les textes d'aide sous les champs de date et le compteur de jours étaient
+  tronqués : le message occupe désormais toute la largeur de la ligne.
+
+### Modifié
+
+- Le champ **Date AT** n'apparaît plus en ML36 : le classeur ne l'expose que sur
+  les onglets ML35 (`B7`) et ML37 (`B6`).
+- Les **initiales du rédacteur** sont reportées dans la case « Cachet et
+  Signature » de l'attestation (`F38`), en aperçu comme à l'export PDF et Excel.
+  Les civilités sont ignorées, les prénoms composés conservés.
+- L'outil est présenté comme un outil **Air France** : la mention ALYZIA est
+  retirée de la documentation et du nom d'organisation de l'application.
+
 ## [1.0.0] — 2026-07-25
 
 Première version de l'application Windows remplaçant le classeur

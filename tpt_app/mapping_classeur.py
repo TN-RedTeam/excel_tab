@@ -184,6 +184,8 @@ ATTESTATION_CHAMPS = {
     "nom_redacteur": "C40",
     "telephone": "C42",
     "mail": "C44",
+    # Case « Cachet et Signature » (fusion F38:H44), sous le libellé F36:H37.
+    "initiales_redacteur": "F38",
 }
 
 ATTESTATION_RISQUES = {"INCAPACITÉ": "D5", "INVALIDITÉ": "H5"}
