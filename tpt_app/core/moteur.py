@@ -17,7 +17,7 @@ from . import attestation as attestation_module
 from . import ml35 as moteur_ml35
 from . import ml36 as moteur_ml36
 from . import ml37 as moteur_ml37
-from .arrondi import ZERO, arrondi_centime
+from .arrondi import arrondi_centime
 from .models import (
     REGIME_ML35,
     REGIME_ML36,

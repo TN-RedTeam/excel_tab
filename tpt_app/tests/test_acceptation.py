@@ -12,7 +12,6 @@ from decimal import Decimal
 import pytest
 
 from tpt_app.core import ml36 as moteur_ml36
-from tpt_app.core import ml37 as moteur_ml37
 from tpt_app.core import moteur
 from tpt_app.core.arrondi import ZERO, arrondi_centime, format_euro, format_pourcent
 from tpt_app.core.attestation import LIBELLE_CONGES, LIBELLE_MALADIE, LIBELLE_SANS_SOLDE

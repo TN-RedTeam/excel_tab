@@ -9,18 +9,15 @@ auditable.
 
 from __future__ import annotations
 
-import datetime as dt
-from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 
 import openpyxl
 
 from .. import mapping_classeur as mc
-from ..core.arrondi import ZERO, arrondi_centime, dec
+from ..core.arrondi import arrondi_centime, dec
 from ..core.models import (
     Dossier,
-    REGIME_ML35,
     ResultatAttestation,
     ResultatMatrice,
     ResultatML35,

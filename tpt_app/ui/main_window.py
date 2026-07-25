@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime as dt
 from pathlib import Path
 from typing import Optional
 
@@ -25,7 +24,7 @@ from PySide6.QtWidgets import (
 
 from ..core import moteur
 from ..core.attestation import nom_fichier
-from ..core.models import Dossier, REGIME_ML35
+from ..core.models import Dossier
 from ..db.repository import DepotDossiers
 from ..export import excel as export_excel
 from ..export import pdf as export_pdf

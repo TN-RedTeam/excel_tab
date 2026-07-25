@@ -10,7 +10,7 @@ import pytest
 
 from tpt_app.core import moteur
 from tpt_app.core.arrondi import arrondi_centime
-from tpt_app.core.models import Dossier, REGIME_ML36, REGIME_ML37
+from tpt_app.core.models import REGIME_ML36, REGIME_ML37
 from tpt_app.db.repository import DepotDossiers, deserialiser, serialiser
 from tpt_app.export import excel
 from tpt_app.export.excel import CHEMIN_TEMPLATE

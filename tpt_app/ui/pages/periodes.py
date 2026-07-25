@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QLabel
 
-from ...core.models import REGIME_ML35, REGIME_ML36, REGIME_ML37, Dossier
+from ...core.models import Dossier
 from ..widgets.table_periodes import TablePeriodes
 from .base import Page
 
