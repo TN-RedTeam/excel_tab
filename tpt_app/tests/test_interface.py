@@ -167,7 +167,7 @@ def test_date_at_masquee_en_ml36(fenetre):
     assert not fenetre.page_salarie.champ_date_at.isHidden()
 
 
-def test_calendrier_s_ouvre_sur_le_mois_en_cours(fenetre):
+def test_calendrier_s_ouvre_sur_le_mois_en_cours(fenetre, application):
     """Un champ vide ne doit pas ouvrir le calendrier sur janvier 1900."""
     from PySide6.QtGui import QShowEvent
     from PySide6.QtCore import QDate
@@ -177,7 +177,11 @@ def test_calendrier_s_ouvre_sur_le_mois_en_cours(fenetre):
     assert champ.valeur() is None
 
     calendrier = champ.calendarWidget()
+    # À l'ouverture, Qt place la page sur la date sélectionnée (1900) ; le
+    # correctif la remet sur le mois courant au tour de boucle suivant.
+    calendrier.setCurrentPage(1900, 1)
     champ.eventFilter(calendrier, QShowEvent())
+    application.processEvents()
 
     aujourdhui = QDate.currentDate()
     assert calendrier.yearShown() == aujourdhui.year()

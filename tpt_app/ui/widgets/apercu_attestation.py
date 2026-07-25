@@ -87,10 +87,23 @@ class ApercuAttestation(QWidget):
     def _texte(self, peintre, page, x, y, largeur, hauteur, texte, taille,
                gras=False, alignement=Qt.AlignLeft | Qt.AlignVCenter,
                couleur=NOIR, retour=False):
-        peintre.setFont(self._police(page, taille, gras))
-        peintre.setPen(QPen(couleur))
+        police = self._police(page, taille, gras)
         cadre = QRectF(page.x() + page.width() * x, page.y() + page.height() * y,
                        page.width() * largeur, page.height() * hauteur)
+
+        # Sans retour à la ligne, un texte plus large que sa case — l'adresse mail
+        # dans son cadre étroit, typiquement — est réduit jusqu'à tenir, plutôt
+        # que tronqué. Le PDF fait de même.
+        if texte and not retour:
+            marge = page.width() * 0.006
+            largeur_utile = max(cadre.width() - 2 * marge, 1)
+            from PySide6.QtGui import QFontMetricsF
+            largeur_texte = QFontMetricsF(police).horizontalAdvance(texte)
+            if largeur_texte > largeur_utile:
+                police.setPointSizeF(police.pointSizeF() * largeur_utile / largeur_texte)
+
+        peintre.setFont(police)
+        peintre.setPen(QPen(couleur))
         drapeaux = alignement | (Qt.TextWordWrap if retour else 0)
         peintre.drawText(cadre, int(drapeaux), texte)
 
