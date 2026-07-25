@@ -1,7 +1,10 @@
 """Construction de l'attestation de prévoyance Vivinter.
 
-L'attestation comporte 7 lignes de période (lignes 26 à 32 du classeur). Chaque
-ligne est alimentée **indépendamment** : la source est choisie période par
+Le gabarit Vivinter comporte 7 lignes de période (lignes 26 à 32 du classeur),
+mais ce n'est plus une limite : l'attestation déclare **toutes** les périodes
+saisies, le tableau étant étendu à l'export (cf. `export/gabarit.py`).
+
+Chaque ligne est alimentée **indépendamment** : la source est choisie période par
 période, jamais globalement, et ML36 est prioritaire sur ML37. Une même
 attestation peut donc mélanger des lignes ML36 et des lignes ML37.
 """
@@ -15,7 +18,6 @@ from typing import Optional
 
 from .arrondi import ZERO, dec
 from .models import (
-    NB_LIGNES_ATTESTATION,
     NB_PERIODES_MAX,
     REGIME_ML36,
     REGIME_ML37,
@@ -121,7 +123,6 @@ def construire(
     correspondante est alors simplement considérée comme non renseignée.
     """
     lignes: list[LigneAttestation] = []
-    hors_formulaire: list[LigneAttestation] = []
 
     taux_ml36 = dec(dossier.ml36.taux_tpt)   # D8
     taux_ml37 = dec(dossier.ml37.taux_tpt)   # D9
@@ -138,10 +139,7 @@ def construire(
         else:
             ligne = LigneAttestation(index=index)
 
-        if index <= NB_LIGNES_ATTESTATION:
-            lignes.append(ligne)
-        elif not ligne.vide:
-            hors_formulaire.append(ligne)
+        lignes.append(ligne)
 
     parametres: Attestation = dossier.attestation
     return ResultatAttestation(
@@ -160,7 +158,6 @@ def construire(
         telephone=parametres.telephone,
         mail=parametres.mail,
         lignes=lignes,
-        periodes_non_declarees=hors_formulaire,
         initiales_redacteur=initiales(parametres.nom_redacteur),
     )
 

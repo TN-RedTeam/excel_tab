@@ -128,7 +128,9 @@ def test_bandeau_ecart_de_compatibilite(fenetre):
     assert fenetre.page_resultats.bandeau.isHidden()
 
 
-def test_bouton_continuation_au_dela_de_sept_periodes(fenetre, dossier_test1):
+def test_export_possible_au_dela_de_sept_periodes(fenetre, dossier_test1):
+    """Plus de blocage : le tableau de l'attestation s'étend."""
+    dossier_test1.ml36.nb_jours_mois = 31
     dossier_test1.ml36.periodes = [
         Periode(motif_principal=REGIME_ML36,
                 date_debut=dt.date(2025, 7, 1 + 3 * i),
@@ -137,9 +139,10 @@ def test_bouton_continuation_au_dela_de_sept_periodes(fenetre, dossier_test1):
     ]
     fenetre.charger_dossier(dossier_test1)
 
-    assert not fenetre.page_attestation.bouton_continuation.isHidden()
-    assert not fenetre.page_attestation.bouton_pdf.isEnabled()
-    assert not fenetre.page_attestation.avertissement.isHidden()
+    assert fenetre.resultat.attestation.nb_lignes_utiles == 9
+    assert fenetre.page_attestation.bouton_pdf.isEnabled()
+    assert fenetre.page_attestation.bouton_excel.isEnabled()
+    assert fenetre.page_attestation.avertissement.isHidden()
 
 
 def test_enregistrement_et_reouverture(fenetre, dossier_test1):

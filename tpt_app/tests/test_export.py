@@ -9,7 +9,7 @@ from tpt_app.core import moteur
 from tpt_app.core.attestation import nom_fichier
 from tpt_app.core.models import REGIME_ML36, Periode
 from tpt_app.export import excel, pdf
-from tpt_app.export.excel import CHEMIN_TEMPLATE, ExportBloque
+from tpt_app.export.excel import CHEMIN_TEMPLATE
 from tpt_app.mapping_classeur import FEUILLE_ATTESTATION
 
 ATTRIBUTS_STYLE = ("font", "fill", "border", "alignment", "number_format", "protection")
@@ -138,22 +138,77 @@ def test_nommage_des_fichiers(dossier_test2):
         "ATTESTATION_VIVINTER_DUPONT_A12345_2025-07.xlsx"
 
 
-def test_export_bloque_au_dela_de_sept_periodes(dossier_test1, tmp_path):
-    """§9.2 — l'export est bloqué tant que les périodes 8+ sont renseignées."""
+def bordures_cloture_attendues():
+    """Tramage de la ligne de clôture du tableau, relevé dans le gabarit."""
+    template = openpyxl.load_workbook(CHEMIN_TEMPLATE)[FEUILLE_ATTESTATION]
+    return [
+        tuple(bool(getattr(template.cell(row=32, column=colonne).border, cote).style)
+              for cote in ("left", "right", "top", "bottom"))
+        for colonne in range(2, 9)
+    ]
+
+
+def test_export_declare_toutes_les_periodes(dossier_test1, tmp_path):
+    """Au-delà de 7 périodes, le tableau s'étend au lieu de bloquer l'export."""
+    dossier_test1.ml36.nb_jours_mois = 31
     dossier_test1.ml36.periodes = [
         Periode(motif_principal=REGIME_ML36,
                 date_debut=dossier_test1.ml36.mois.replace(day=1 + 3 * i),
                 date_fin=dossier_test1.ml36.mois.replace(day=3 + 3 * i))
-        for i in range(9)
+        for i in range(10)
     ]
     resultat = moteur.calculer(dossier_test1)
+    assert resultat.exportable
 
-    with pytest.raises(ExportBloque):
-        excel.exporter(dossier_test1, resultat, tmp_path / "bloque.xlsx")
-    with pytest.raises(ExportBloque):
-        pdf.exporter(dossier_test1, resultat, tmp_path / "bloque.pdf")
+    chemin = excel.exporter(dossier_test1, resultat, tmp_path / "dix.xlsx")
+    feuille = openpyxl.load_workbook(chemin)[FEUILLE_ATTESTATION]
 
-    # L'attestation de continuation, elle, doit pouvoir être produite.
-    chemin = excel.exporter(dossier_test1, resultat, tmp_path / "suite.xlsx",
-                            ignorer_controles=True)
-    assert chemin.exists()
+    def bordures(ligne):
+        return [
+            tuple(bool(getattr(feuille.cell(row=ligne, column=colonne).border, cote).style)
+                  for cote in ("left", "right", "top", "bottom"))
+            for colonne in range(2, 9)
+        ]
+
+    # 10 lignes de période renseignées, à partir de la ligne 26.
+    for rang in range(10):
+        assert feuille.cell(row=26 + rang, column=2).value is not None, rang
+
+    # Les lignes ajoutées (32 à 34) reprennent exactement le tramage de la ligne
+    # courante du gabarit ; la ligne 35 reste la ligne de clôture du tableau.
+    modele = bordures(31)
+    for ligne in (32, 33, 34):
+        assert bordures(ligne) == modele, f"ligne {ligne}"
+    assert bordures(35) == bordures_cloture_attendues()
+    # Rien n'est dessiné sous le tableau.
+    assert bordures(36) == [(False,) * 4] * 7
+
+    # Les champs du bas ont suivi le décalage de 3 lignes.
+    assert feuille["C39"].value == "ROISSY CDG"
+    assert feuille["F39"].value == "Cachet et Signature"
+
+
+def test_export_pdf_tient_sur_une_page_avec_dix_periodes(dossier_test1, tmp_path):
+    pypdfium2 = pytest.importorskip("pypdfium2")
+
+    dossier_test1.ml36.nb_jours_mois = 31
+    dossier_test1.ml36.periodes = [
+        Periode(motif_principal=REGIME_ML36,
+                date_debut=dossier_test1.ml36.mois.replace(day=1 + 3 * i),
+                date_fin=dossier_test1.ml36.mois.replace(day=3 + 3 * i))
+        for i in range(10)
+    ]
+    resultat = moteur.calculer(dossier_test1)
+    chemin = pdf.exporter(dossier_test1, resultat, tmp_path / "dix.pdf")
+
+    document = pypdfium2.PdfDocument(chemin)
+    assert len(document) == 1
+    largeur, hauteur = document[0].get_size()
+    assert round(largeur) == 595 and round(hauteur) == 842
+
+    texte = document[0].get_textpage().get_text_range()
+    # Les dix périodes figurent bien, ainsi que le bas de page.
+    for jour in range(1, 30, 3):
+        assert f"{jour:02d}/07/2025" in texte
+    assert "Cachet et Signature" in texte
+    assert "A retourner à VIVINTER" in texte

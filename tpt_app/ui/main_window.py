@@ -303,15 +303,12 @@ class FenetrePrincipale(QMainWindow):
             f"Classeur « {Path(chemin).name} » importé.", 6000)
 
     def exporter(self, format_demande: str) -> None:
-        """Produit l'attestation ; ``continuation`` déclare les périodes 8 à 10."""
+        """Produit l'attestation déclarant toutes les périodes du dossier."""
         self.recalculer()
-        continuation = format_demande == "continuation"
-        extension = "pdf" if continuation else format_demande
+        extension = format_demande
 
         matrice = self.dossier.matrice_active()
         propose = nom_fichier(self.resultat.attestation, matrice.mois, extension)
-        if continuation:
-            propose = propose.replace(f".{extension}", f"_SUITE.{extension}")
 
         filtres = {"pdf": "Document PDF (*.pdf)", "xlsx": "Classeur Excel (*.xlsx)"}
         chemin, _ = QFileDialog.getSaveFileName(
@@ -321,8 +318,7 @@ class FenetrePrincipale(QMainWindow):
 
         module = export_pdf if extension == "pdf" else export_excel
         try:
-            module.exporter(self.dossier, self.resultat, chemin,
-                            ignorer_controles=continuation)
+            module.exporter(self.dossier, self.resultat, chemin)
         except ExportBloque as erreur:
             self._alerter(str(erreur))
             return

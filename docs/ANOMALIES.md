@@ -69,23 +69,41 @@ résultat : le réglage n'a d'effet que sur les dossiers repris d'un classeur.
 
 ---
 
-## 9.2 — Sept lignes pour dix périodes
+## 9.2 — Sept lignes pour dix périodes  — **levée**
 
 ### Constat
 
-L'attestation ne comporte que **7 lignes** (lignes 26 à 32) alors que les matrices
-gèrent **10 périodes**. Les périodes 8, 9 et 10 ne sont jamais déclarées à
-Vivinter, sans le moindre message.
+Le gabarit Vivinter ne comporte que **7 lignes** (lignes 26 à 32) alors que les
+matrices gèrent **10 périodes**. Dans le classeur, les périodes 8, 9 et 10
+n'étaient jamais déclarées à Vivinter, sans le moindre message.
 
 ### Traitement retenu
 
-- L'export affiche les 7 lignes, contrainte de format Vivinter oblige.
-- Dès qu'une période au-delà de la 7ème est renseignée, **l'export est bloqué**
-  avec un message explicite nommant les périodes concernées
-  (`validation.controler_export`).
-- Un bouton **« Attestation de continuation »** apparaît dans l'étape
-  « Attestation » et produit un second document pour les périodes restantes
-  (suffixe `_SUITE`).
+La limite est **supprimée**. À l'export, le tableau des périodes est étendu au
+nombre de périodes du dossier (`export/gabarit.py`) : les lignes manquantes sont
+insérées dans la feuille chargée en reprenant à l'identique la mise en forme
+d'une ligne courante, et tout ce qui se trouve dessous — notes de bas de page,
+bloc « Fait à », cadre « Cachet et Signature », mentions légales — descend
+d'autant.
+
+Le PDF **reste sur une seule page A4** : le rendu ramène toujours la zone
+d'impression à la page, si bien qu'un tableau plus haut se traduit par une
+échelle légèrement plus fine, jamais par une seconde page.
+
+Les exports Excel et PDF consomment la même feuille étendue : les deux documents
+déclarent exactement les mêmes lignes.
+
+Un dossier de 7 périodes ou moins produit un document **strictement identique** à
+celui du gabarit d'origine : aucune ligne n'est ajoutée.
+
+### Limite restante
+
+Le nombre de périodes reste borné à **10 par régime** (8 pour ML35). Ce n'est plus
+une contrainte de l'attestation mais celle des **matrices du classeur** : les
+onglets ML36 et ML37 ne comportent que 10 blocs de période (lignes 21 à 70 pour
+ML36), et au-delà l'export Excel des matrices n'aurait plus où écrire. Lever cette
+limite-là supposerait de restructurer les onglets matrices, ce qui romprait la
+compatibilité avec le classeur.
 
 ---
 
@@ -147,9 +165,8 @@ Découvertes lors de l'extraction.
 période teste son propre motif et son propre 30ème.
 
 **Portée** : ces cellules ne divergent que sur les dossiers comportant 8 périodes
-ou plus, c'est-à-dire précisément ceux que l'attestation ne peut pas déclarer
-intégralement (§9.2). L'impact pratique est donc nul, mais l'écart est réel et
-signalé ici pour mémoire.
+ou plus. Ces dossiers étant désormais déclarés intégralement (§9.2), l'écart n'est
+plus théorique : l'application applique la règle correcte, le classeur non.
 
 ---
 
@@ -173,4 +190,4 @@ division par zéro, aucune propagation d'erreur — cf. test d'acceptation 7.
 | # | Décision | Qui tranche |
 |---|---|---|
 | 9.1 | Régulariser ou non les dossiers historiques dont les périodes d'absence ont été valorisées à tort ; à terme, désactiver le mode de compatibilité v6 | Service paie |
-| 9.2 | Valider le principe de l'attestation de continuation auprès de Vivinter, ou obtenir un formulaire à plus de 7 lignes | Service paie / Vivinter |
+| 9.2 | Confirmer à Vivinter qu'une attestation de plus de 7 lignes est recevable — le format du formulaire est respecté, seul le nombre de lignes du tableau change | Service paie / Vivinter |

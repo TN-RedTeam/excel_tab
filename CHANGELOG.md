@@ -2,6 +2,34 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.1.0] — 2026-07-25
+
+### Modifié
+
+- **La limite de 7 lignes de l'attestation est levée.** Toutes les périodes du
+  dossier sont déclarées : le tableau du gabarit Vivinter est étendu au nombre
+  nécessaire (`export/gabarit.py`), et les notes de bas de page, le bloc
+  « Fait à », le cadre « Cachet et Signature » ainsi que les mentions légales
+  descendent d'autant.
+- Le **PDF reste sur une seule page A4** quel que soit le nombre de périodes :
+  le rendu ramène toujours la zone d'impression à la page, un tableau plus haut
+  se traduisant par une échelle plus fine, jamais par une seconde page.
+- Les exports Excel et PDF partagent la même feuille étendue : les deux
+  documents déclarent exactement les mêmes lignes.
+- Un dossier de 7 périodes ou moins produit un document **strictement identique**
+  à celui du gabarit d'origine.
+
+### Supprimé
+
+- Le blocage de l'export au-delà de la 7ème période, ainsi que le bouton
+  « Attestation de continuation » qu'il rendait nécessaire.
+
+### Limite restante
+
+- Le nombre de périodes reste borné à **10 par régime** (8 en ML35) : ce n'est
+  plus l'attestation qui contraint, mais la structure des onglets matrices du
+  classeur, qui ne comportent que 10 blocs de période.
+
 ## [1.0.1] — 2026-07-25
 
 Retours d'usage sur la première présentation.
@@ -100,7 +128,5 @@ Première version de l'application Windows remplaçant le classeur
   reproduit le garde-fou inopérant du classeur (§9.1 de `docs/ANOMALIES.md`).
   Un avertissement chiffré s'affiche à l'étape « Résultats » dès que les deux
   modes divergent. Le choix définitif appartient au service paie.
-- L'export est **bloqué** si des périodes au-delà de la 7ème sont renseignées ;
-  une attestation de continuation peut être générée (§9.2).
 - Le correctif d'arrondi historique `+0,0005` sur les 30èmes est **conservé à
   l'identique**.

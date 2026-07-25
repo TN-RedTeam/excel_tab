@@ -252,23 +252,40 @@ def test5_masquage_des_zeros():
 # --------------------------------------------------------------------------
 
 
-def test7_dix_periodes_signale_les_non_declarees():
+def test7_dix_periodes_sont_toutes_declarees():
+    """§8 — Test 7, revu : plus aucune période n'est écartée de l'attestation.
+
+    Le gabarit Vivinter n'offrait que 7 lignes ; le tableau est désormais étendu
+    au nombre de périodes du dossier, et l'export n'est plus bloqué.
+    """
     periodes = [periode(1 + 3 * i, 3 + 3 * i, REGIME_ML36) for i in range(10)]
     ml36 = DossierML36(
         salarie=salarie(),
         mois=dt.date(2025, 7, 1),
-        nb_jours_mois=30,
+        nb_jours_mois=31,
         taux_tpt=Decimal("0.4"),
         tmf_100=Decimal(2500),
         periodes=periodes,
     )
     resultat = moteur.calculer(Dossier(regime=REGIME_ML36, ml36=ml36))
+    attestation = resultat.attestation
 
-    assert len(resultat.attestation.lignes) == 7
-    assert all(not ligne.vide for ligne in resultat.attestation.lignes)
-    assert [l.index for l in resultat.attestation.periodes_non_declarees] == [8, 9, 10]
-    assert not resultat.exportable
-    assert any("8, 9, 10" in a.message for a in resultat.anomalies_export)
+    assert attestation.nb_lignes_utiles == 10
+    assert all(not ligne.vide for ligne in attestation.lignes[:10])
+    assert [ligne.index for ligne in attestation.lignes[:10]] == list(range(1, 11))
+    assert resultat.exportable
+    assert resultat.anomalies_export == []
+
+
+def test7_gabarit_conserve_sept_lignes_au_minimum():
+    """Un dossier de 2 périodes garde les 7 lignes du formulaire d'origine."""
+    ml36 = DossierML36(
+        salarie=salarie(), mois=dt.date(2025, 7, 1), nb_jours_mois=31,
+        taux_tpt=Decimal("0.4"), tmf_100=Decimal(2500),
+        periodes=[periode(1, 8, REGIME_ML36), periode(11, 18, REGIME_ML36)],
+    )
+    attestation = moteur.calculer(Dossier(regime=REGIME_ML36, ml36=ml36)).attestation
+    assert attestation.nb_lignes_utiles == 7
 
 
 @pytest.mark.parametrize(

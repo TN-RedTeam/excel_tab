@@ -235,7 +235,9 @@ Cet onglet **n'alimente pas** l'attestation Vivinter.
 
 ## 5. Attestation Vivinter
 
-7 lignes de période, **lignes 26 à 32**.
+Le gabarit comporte 7 lignes de période, **lignes 26 à 32**. Ce n'est plus une
+limite : le tableau est étendu à l'export au nombre de périodes du dossier
+(cf. `export/gabarit.py` et `ANOMALIES.md` §9.2), le PDF restant sur une page.
 
 ### 5.1 Sélection de la source, ligne par ligne
 

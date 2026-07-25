@@ -30,7 +30,8 @@ from .base import Page
 class PageAttestation(Page):
     titre = "Attestation"
     soustitre = ("Les colonnes « Dont PUA / PFA » et « Autres primes » sont calculées "
-                 "et non modifiables. L'aperçu se met à jour à chaque frappe.")
+                 "et non modifiables. Toutes les périodes du dossier sont déclarées : "
+                 "le tableau s'étend et le PDF tient sur une seule page.")
 
     #: Émis quand l'utilisateur demande un export.
     export_demande = Signal(str)
@@ -76,9 +77,7 @@ class PageAttestation(Page):
         self.bouton_excel = QPushButton("Exporter en Excel  (Ctrl+E)")
         self.bouton_pdf = QPushButton("Exporter en PDF  (Ctrl+P)")
         self.bouton_pdf.setProperty("role", "primaire")
-        self.bouton_continuation = QPushButton("Attestation de continuation")
-        self.bouton_continuation.setVisible(False)
-        for bouton in (self.bouton_pdf, self.bouton_excel, self.bouton_continuation):
+        for bouton in (self.bouton_pdf, self.bouton_excel):
             boutons.addWidget(bouton)
         boutons.addStretch(1)
         disposition.addLayout(boutons)
@@ -86,8 +85,6 @@ class PageAttestation(Page):
 
         self.bouton_excel.clicked.connect(lambda: self.export_demande.emit("xlsx"))
         self.bouton_pdf.clicked.connect(lambda: self.export_demande.emit("pdf"))
-        self.bouton_continuation.clicked.connect(
-            lambda: self.export_demande.emit("continuation"))
 
         self.apercu = ApercuAttestation()
 
@@ -144,8 +141,6 @@ class PageAttestation(Page):
         exportable = resultat.exportable
         self.bouton_excel.setEnabled(exportable)
         self.bouton_pdf.setEnabled(exportable)
-        self.bouton_continuation.setVisible(
-            bool(resultat.attestation.periodes_non_declarees))
 
     def _signaler(self, *_) -> None:
         if not self._chargement:
