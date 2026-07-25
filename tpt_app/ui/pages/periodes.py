@@ -11,9 +11,7 @@ from .base import Page
 
 class PagePeriodes(Page):
     titre = "Périodes"
-    soustitre = ("Une période porte un couple de dates, un motif principal et, le cas "
-                 "échéant, un motif d'absence. Les colonnes « Nb jours » et « 30ème » "
-                 "sont calculées.")
+    soustitre = ""
 
     def construire(self) -> None:
         self._chargement = False

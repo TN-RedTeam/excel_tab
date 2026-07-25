@@ -112,8 +112,8 @@ cellules ; il est partagé par l'export et par l'import.
 | `D_{p+4}` | `=D_{p+2}-D_{p+3}` | `perte` |
 
 > Le test `A_p = "Abs (Mal, CA, autres)"` n'est **jamais vrai** : cette valeur
-> n'existe dans aucune liste déroulante. Voir `ANOMALIES.md` §9.1 et le
-> « mode de compatibilité classeur v6 ».
+> n'existe dans aucune liste déroulante. L'application applique la règle voulue —
+> une période d'absence n'est pas rémunérée. Voir `ANOMALIES.md` §9.1.
 
 ### 2.4 Totaux
 

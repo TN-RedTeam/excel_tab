@@ -107,8 +107,7 @@ ne peuvent pas être modifiés :
 - **Perte PUA** = PUA − PUA perçue.
 
 Le champ **Autres primes** est ventilé au prorata des 30èmes et alimente la
-colonne « Autres primes » de l'attestation. Il était auparavant saisi à la main
-sur l'attestation ; il est désormais calculé.
+colonne « Autres primes » de l'attestation.
 
 Les taux se saisissent en pourcentage : tapez `40` pour 40 %.
 
@@ -182,24 +181,6 @@ incohérent, numéro de sécurité sociale de longueur inattendue.
 La synthèse des totaux et le détail période par période :
 `SALAIRE RETABLI 3201`, `PERTE CPAM`, `PERÇU CPAM`, `VIVINTER — perçu déclaré`,
 somme des 30èmes et absences sans solde.
-
-### L'avertissement « mode de compatibilité »
-
-Un bandeau orangé peut apparaître : il signale que le **mode de compatibilité
-classeur v6** et le **calcul corrigé** ne donnent pas le même résultat sur ce
-dossier, et chiffre l'écart poste par poste.
-
-Cela concerne exclusivement les dossiers **repris d'un classeur** dans lesquels
-les dates d'une période d'absence avaient été saisies sur la ligne « période ».
-Le classeur leur attribuait un salaire à tort ; l'application sait faire les deux.
-
-Le mode est réglable dans la barre du haut. **Il est activé par défaut**, afin
-que l'application reproduise le classeur tant que le service paie n'a pas
-tranché. Voir `ANOMALIES.md`, §9.1.
-
-> Sur un dossier saisi dans l'application, ce réglage ne change **rien** : la
-> case est alors grisée et porte la mention « sans effet ici ». Elle ne
-> redevient active que sur un dossier importé où les deux modes divergent.
 
 ---
 

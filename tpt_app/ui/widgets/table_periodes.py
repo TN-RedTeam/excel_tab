@@ -3,8 +3,7 @@
 Une période est un objet unique : un couple de dates et **un seul motif**. Le
 classeur séparait le motif d'activité du motif d'absence sur deux lignes, donc
 deux listes déroulantes ; l'application n'en propose qu'une, où figurent tous les
-motifs du régime. L'ambiguïté du tableur — dates saisies tantôt sur la ligne
-« période », tantôt sur la ligne « motif » — n'est pas reproduite ici (§5.3).
+motifs du régime.
 """
 
 from __future__ import annotations
@@ -115,7 +114,6 @@ class TablePeriodes(QWidget):
             motif = self.table.cellWidget(ligne, 1)
             debut = self.table.cellWidget(ligne, 2)
             fin = self.table.cellWidget(ligne, 3)
-            numero = self.table.item(ligne, 0)
             principal, absence = decomposer_motif(
                 self._regime, motif.valeur() if motif else "")
             resultat.append(Periode(
@@ -123,9 +121,6 @@ class TablePeriodes(QWidget):
                 motif_absence=absence,
                 date_debut=debut.valeur() if debut else None,
                 date_fin=fin.valeur() if fin else None,
-                # Conserve la ligne de saisie d'origine d'un dossier importé : la
-                # table ne doit pas la réécrire au premier recalcul (§9.4).
-                dates_sur_ligne_periode=numero.data(Qt.UserRole) if numero else None,
             ))
         return resultat
 
@@ -184,22 +179,12 @@ class TablePeriodes(QWidget):
             self.table.setCellWidget(ligne, colonne, widget)
         for colonne in (0, 4, 5):
             self._definir_cellule(ligne, colonne, "")
-        self.table.item(ligne, 0).setData(Qt.UserRole, periode.dates_sur_ligne_periode)
 
         motif.currentIndexChanged.connect(self._ligne_modifiee)
         debut.dateChanged.connect(self._ligne_modifiee)
         fin.dateChanged.connect(self._ligne_modifiee)
 
     def _ligne_modifiee(self, *_) -> None:
-        """Une modification manuelle lève l'ambiguïté héritée d'un classeur importé."""
-        emetteur = self.sender()
-        for ligne in range(self.table.rowCount()):
-            if any(self.table.cellWidget(ligne, colonne) is emetteur
-                   for colonne in (1, 2, 3)):
-                numero = self.table.item(ligne, 0)
-                if numero is not None:
-                    numero.setData(Qt.UserRole, None)
-                break
         self._signaler()
 
     def _definir_cellule(self, ligne: int, colonne: int, texte: str) -> None:

@@ -68,18 +68,24 @@ def test_import_lit_les_deux_lignes_de_saisie(tmp_path):
     premiere, seconde = dossier.ml36.periodes[0], dossier.ml36.periodes[1]
 
     assert premiere.date_debut == dt.date(2025, 7, 1)
-    assert premiere.dates_sur_ligne_periode is True
+    assert premiere.date_fin == dt.date(2025, 7, 8)
 
+    # Les dates de la période d'absence, portées par la ligne « motif », sont
+    # bien récupérées : aucune donnée historique n'est perdue.
     assert seconde.motif_absence == "Maladie"
     assert seconde.date_debut == dt.date(2025, 7, 11)
     assert seconde.date_fin == dt.date(2025, 7, 18)
-    # La période d'absence ne compte pas dans les 30èmes.
-    assert seconde.sur_ligne_periode is False
+    # Elle ne compte pas dans les 30èmes : elle n'est pas rémunérée.
     assert seconde.nb_jours_ligne_periode() == 0
 
 
-def test_import_conserve_le_calcul_d_origine(tmp_path):
-    """Dates d'absence sur la ligne « période » : le mode v6 les valorise."""
+def test_import_corrige_une_periode_d_absence_mal_saisie(tmp_path):
+    """Dates d'absence sur la ligne « période » : la règle correcte s'applique.
+
+    Le classeur valorisait ces périodes à tort — son garde-fou ne se déclenchait
+    jamais (§9.1). Le dossier repris est recalculé selon la règle voulue : une
+    période d'absence n'est pas rémunérée.
+    """
     classeur = openpyxl.load_workbook(CHEMIN_TEMPLATE)
     feuille = classeur[FEUILLE_ML36]
     feuille["B4"] = "MARTIN"
@@ -96,12 +102,11 @@ def test_import_conserve_le_calcul_d_origine(tmp_path):
 
     dossier = importer(chemin)
     periode = dossier.ml36.periodes[0]
-    assert periode.dates_sur_ligne_periode is True
     assert periode.est_absence
+    assert periode.date_debut == dt.date(2025, 7, 1)   # la date est conservée
 
     resultat = moteur.calculer(dossier)
-    assert arrondi_centime(resultat.ml36.periodes[0].montant_declare) == Decimal("166.67")
-    # L'attestation masque néanmoins le montant derrière le motif.
+    assert arrondi_centime(resultat.ml36.periodes[0].montant_declare) == Decimal("0.00")
     assert resultat.attestation.lignes[0].libelle == "Maladie"
 
 
