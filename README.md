@@ -2,7 +2,7 @@
 
 Application Windows native remplaçant le classeur
 `CALCULATEUR_TPT_V6_9_attest_Vivinter.xlsx` utilisé par le service RH
-d'Air France / ALYZIA à Roissy-CDG : calcul des pertes de salaire liées au
+d'Air France à Roissy-CDG : calcul des pertes de salaire liées au
 **temps partiel thérapeutique** et production de l'**attestation de prévoyance
 Vivinter**.
 

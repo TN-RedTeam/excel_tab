@@ -39,7 +39,7 @@ def dossier_donnees() -> Path:
 def main() -> int:
     application = QApplication(sys.argv)
     application.setApplicationName("Calculateur TPT")
-    application.setOrganizationName("Air France — ALYZIA")
+    application.setOrganizationName("Air France")
     QLocale.setDefault(QLocale(QLocale.French, QLocale.France))
 
     fenetre = FenetrePrincipale(DepotDossiers(dossier_donnees() / "app.db"))

@@ -11,13 +11,15 @@ import datetime as dt
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
-from PySide6.QtCore import QDate, QLocale, Qt, Signal
+from PySide6.QtCore import QDate, QEvent, QLocale, Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox,
     QDateEdit,
     QFormLayout,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
+    QSizePolicy,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -44,7 +46,17 @@ class Champ(QWidget):
         disposition = QVBoxLayout(self)
         disposition.setContentsMargins(0, 0, 0, 0)
         disposition.setSpacing(UNITE // 2)
-        disposition.addWidget(editeur)
+
+        # L'éditeur garde sa largeur naturelle — un sélecteur de date étiré sur
+        # toute la ligne serait disgracieux — mais le message, lui, occupe toute
+        # la largeur disponible, faute de quoi il se replie et se retrouve tronqué.
+        ligne = QHBoxLayout()
+        ligne.setContentsMargins(0, 0, 0, 0)
+        ligne.setSpacing(0)
+        ligne.addWidget(editeur)
+        ligne.addStretch(1)
+        disposition.addLayout(ligne)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
         self.message = QLabel(aide)
         self.message.setWordWrap(True)
@@ -147,7 +159,17 @@ class SaisieTaux(QLineEdit):
 
 
 class SaisieDate(QDateEdit):
-    """Sélecteur de date au format français, calendrier commençant le lundi."""
+    """Sélecteur de date au format français, calendrier commençant le lundi.
+
+    Un champ vide est représenté par la date minimale, affichée comme une case
+    vide. Deux aménagements en découlent :
+
+    * le calendrier s'ouvre sur le **mois et l'année en cours**, et non sur
+      janvier 1900 ;
+    * taper un chiffre dans un champ vide l'amorce à la date du jour, ce qui
+      rend la **saisie entièrement au clavier** possible sans passer par le
+      calendrier.
+    """
 
     def __init__(self, parent=None, autorise_vide: bool = True):
         super().__init__(parent)
@@ -158,11 +180,17 @@ class SaisieDate(QDateEdit):
         self.calendarWidget().setLocale(LOCALE_FR)
         self.setSpecialValueText(" " if autorise_vide else "")
         self.setMinimumDate(QDate(1900, 1, 1))
+        self._autorise_vide = autorise_vide
         if autorise_vide:
             self.setDate(self.minimumDate())
+        self.calendarWidget().installEventFilter(self)
+
+    @property
+    def _vide(self) -> bool:
+        return self._autorise_vide and self.date() == self.minimumDate()
 
     def valeur(self) -> Optional[dt.date]:
-        if self.date() == self.minimumDate():
+        if self._vide:
             return None
         return self.date().toPython()
 
@@ -171,6 +199,26 @@ class SaisieDate(QDateEdit):
             self.setDate(self.minimumDate())
         else:
             self.setDate(QDate(valeur.year, valeur.month, valeur.day))
+
+    def eventFilter(self, objet, evenement):      # noqa: N802 (API Qt)
+        """Positionne le calendrier sur le mois en cours quand le champ est vide.
+
+        On se contente de tourner la page du calendrier : aucune date n'est
+        sélectionnée tant que l'utilisateur n'a pas cliqué, refermer la fenêtre
+        laisse donc bien le champ vide.
+        """
+        if objet is self.calendarWidget() and evenement.type() == QEvent.Show \
+                and self._vide:
+            aujourdhui = QDate.currentDate()
+            self.calendarWidget().setCurrentPage(aujourdhui.year(), aujourdhui.month())
+        return super().eventFilter(objet, evenement)
+
+    def keyPressEvent(self, evenement):           # noqa: N802 (API Qt)
+        """Amorce un champ vide à la date du jour dès la première frappe."""
+        if self._vide and evenement.text()[:1].isdigit():
+            self.setDate(QDate.currentDate())
+            self.setCurrentSection(QDateEdit.DaySection)
+        super().keyPressEvent(evenement)
 
 
 class SaisieMois(QDateEdit):
@@ -245,3 +293,9 @@ class Formulaire(QFormLayout):
         champ = Champ(libelle, editeur, aide)
         self.addRow(libelle, champ)
         return champ
+
+    def definir_ligne_visible(self, champ: Champ, visible: bool) -> None:
+        """Masque une ligne entière, libellé compris, sans laisser de trou."""
+        ligne, _ = self.getWidgetPosition(champ)
+        if ligne >= 0:
+            self.setRowVisible(ligne, visible)

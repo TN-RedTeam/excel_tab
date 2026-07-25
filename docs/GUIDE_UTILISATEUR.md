@@ -1,7 +1,7 @@
 # Guide utilisateur — Calculateur TPT / Attestation Vivinter
 
-Ce guide remplace le MODOP du classeur. Il s'adresse au service RH d'Air France /
-ALYZIA à Roissy-CDG.
+Ce guide remplace le MODOP du classeur. Il s'adresse au service RH d'Air France
+à Roissy-CDG.
 
 ---
 
@@ -77,8 +77,9 @@ Choisissez d'abord le **régime** — un dossier relève d'un seul régime à la
 Seuls **ML36 et ML37 alimentent l'attestation Vivinter**. Un dossier ML35 produit
 une perte à déclarer, pas une attestation de temps partiel.
 
-Renseignez ensuite l'identité, la date d'AT le cas échéant, la DJT, le **mois
-traité** et le **nombre de jours du mois**.
+Renseignez ensuite l'identité, la DJT, le **mois traité** et le **nombre de jours
+du mois**. Le champ **Date AT** n'apparaît que pour ML35 et ML37 : la matrice
+ML36 ne comporte pas cette donnée.
 
 > Le nombre de jours du mois sert de diviseur au calcul des 30èmes : il détermine
 > tous les montants. Si vous saisissez un nombre différent du nombre réel de jours
@@ -122,6 +123,17 @@ Une ligne = une période continue, avec :
 
 Les boutons **Ajouter**, **Supprimer**, **Monter** et **Descendre** gèrent la
 liste.
+
+### Saisir une date
+
+Deux méthodes, au choix :
+
+- **Au clavier** : tapez directement les chiffres. Sur un champ vide, la première
+  frappe amorce la date du jour, puis vous corrigez le jour, le mois et l'année ;
+  `←` et `→` passent d'une partie à l'autre, `↑` et `↓` incrémentent.
+- **Au calendrier** : cliquez sur la flèche. Le calendrier s'ouvre sur le **mois
+  et l'année en cours**, la semaine commence le lundi. Refermer sans cliquer
+  laisse le champ vide.
 
 > **Point important.** Dans le classeur, il fallait saisir les dates tantôt sur la
 > ligne « période », tantôt sur la ligne « motif », selon la liste déroulante
@@ -172,6 +184,10 @@ tranché. Voir `ANOMALIES.md`, §9.1.
 À gauche, les seuls champs restant à saisir : n° de dossier, qualification
 (`PS` / `PNC` / `PNT`), risque (`INCAPACITÉ` / `INVALIDITÉ`), lieu, date, nom du
 rédacteur et téléphone. Le mail Vivinter est pré-rempli.
+
+Les **initiales du rédacteur** sont reprises automatiquement dans la case
+« Cachet et Signature » : « Sophie BERNARD » y inscrit `S.B.`. Les civilités sont
+ignorées et les prénoms composés conservés (« Anne-Marie DUPONT » → `A.M.D.`).
 
 À droite, **l'aperçu se met à jour à chaque frappe** et reproduit le document
 final.

@@ -177,3 +177,69 @@ def test_apercu_se_dessine_sans_erreur(fenetre, dossier_test2):
     image = QPixmap(600, 850)
     apercu.render(image)
     assert not image.isNull()
+
+
+def test_date_at_masquee_en_ml36(fenetre):
+    """ML36 n'a pas de date d'accident du travail : le champ disparaît."""
+    fenetre.charger_dossier(Dossier(regime=REGIME_ML36))
+    assert fenetre.page_salarie.champ_date_at.isHidden()
+
+    fenetre.charger_dossier(Dossier(regime=REGIME_ML37))
+    assert not fenetre.page_salarie.champ_date_at.isHidden()
+
+    fenetre.charger_dossier(Dossier(regime="ML35"))
+    assert not fenetre.page_salarie.champ_date_at.isHidden()
+
+
+def test_calendrier_s_ouvre_sur_le_mois_en_cours(fenetre):
+    """Un champ vide ne doit pas ouvrir le calendrier sur janvier 1900."""
+    from PySide6.QtGui import QShowEvent
+    from PySide6.QtCore import QDate
+
+    champ = fenetre.page_salarie.djt
+    champ.definir_valeur(None)
+    assert champ.valeur() is None
+
+    calendrier = champ.calendarWidget()
+    champ.eventFilter(calendrier, QShowEvent())
+
+    aujourdhui = QDate.currentDate()
+    assert calendrier.yearShown() == aujourdhui.year()
+    assert calendrier.monthShown() == aujourdhui.month()
+    # Tourner la page ne remplit pas le champ : refermer le laisse vide.
+    assert champ.valeur() is None
+
+
+def test_saisie_de_date_au_clavier(fenetre):
+    """Taper un chiffre sur un champ vide l'amorce à la date du jour."""
+    from PySide6.QtCore import QDate, Qt
+    from PySide6.QtGui import QKeyEvent
+    from PySide6.QtCore import QEvent
+
+    champ = fenetre.page_salarie.djt
+    champ.definir_valeur(None)
+    champ.setFocus()
+
+    champ.keyPressEvent(QKeyEvent(QEvent.KeyPress, Qt.Key_1, Qt.NoModifier, "1"))
+    assert champ.valeur() is not None
+    assert champ.valeur().year == QDate.currentDate().year()
+
+
+def test_listes_de_motifs_completes_en_ml36(fenetre):
+    """Les 4 motifs d'absence ML36 sont proposés dans la table des périodes."""
+    fenetre.charger_dossier(Dossier(regime=REGIME_ML36))
+    table = fenetre.page_periodes.table
+    table._ajouter()
+
+    absence = table.table.cellWidget(0, 2)
+    proposes = [absence.itemText(i) for i in range(absence.count())]
+    assert proposes == ["", "Maladie", "CA / JEM", "Autres absences", "Abs sans solde"]
+
+    principal = table.table.cellWidget(0, 1)
+    assert [principal.itemText(i) for i in range(principal.count())] == ["", "ML36"]
+
+
+def test_initiales_dans_l_apercu(fenetre, dossier_test1):
+    dossier_test1.attestation.nom_redacteur = "Sophie BERNARD"
+    fenetre.charger_dossier(dossier_test1)
+    assert fenetre.resultat.attestation.initiales_redacteur == "S.B."

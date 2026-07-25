@@ -440,3 +440,5 @@ class ResultatAttestation:
     lignes: list[LigneAttestation] = field(default_factory=list)
     #: Périodes au-delà de la 7ème, non déclarables sur ce formulaire.
     periodes_non_declarees: list[LigneAttestation] = field(default_factory=list)
+    #: Initiales du rédacteur, reportées dans la case « Cachet et Signature ».
+    initiales_redacteur: str = ""

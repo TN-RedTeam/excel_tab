@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QButtonGroup, QGroupBox, QHBoxLayout, QRadioButton
 
-from ...core.models import REGIMES, Dossier
+from ...core.models import REGIME_ML36, REGIMES, Dossier
 from ..theme import UNITE
 from ..widgets.champs import (
     Formulaire,
@@ -60,6 +60,7 @@ class PageSalarie(Page):
 
         groupe_periode = QGroupBox("Arrêt et mois traité")
         periode = Formulaire(groupe_periode)
+        self._formulaire_periode = periode
         self.date_at = SaisieDate()
         self.djt = SaisieDate()
         self.mois = SaisieMois()
@@ -84,11 +85,21 @@ class PageSalarie(Page):
 
     # -- synchronisation --------------------------------------------------
 
+    def _adapter_au_regime(self, regime: str) -> None:
+        """ML36 ne comporte pas de date d'accident du travail : on masque le champ.
+
+        Le classeur n'expose « DATE AT » que sur les onglets ML35 (`B7`) et ML37
+        (`B6`) ; la matrice ML36 n'a pas de cellule correspondante.
+        """
+        self._formulaire_periode.definir_ligne_visible(
+            self.champ_date_at, regime != REGIME_ML36)
+
     def charger(self, dossier: Dossier) -> None:
         self._chargement = True
         try:
             for bouton in self.groupe_boutons.buttons():
                 bouton.setChecked(bouton.property("regime") == dossier.regime)
+            self._adapter_au_regime(dossier.regime)
             matrice = dossier.matrice_active()
             salarie = matrice.salarie
             self.siret.setText(salarie.siret)
@@ -109,6 +120,7 @@ class PageSalarie(Page):
 
     def appliquer(self, dossier: Dossier) -> None:
         dossier.regime = self.regime_selectionne()
+        self._adapter_au_regime(dossier.regime)
         # L'identité est commune aux trois régimes : on la recopie partout, afin
         # que l'attestation la retrouve quel que soit le régime saisi.
         for matrice in (dossier.ml35, dossier.ml36, dossier.ml37):

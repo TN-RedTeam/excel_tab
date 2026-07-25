@@ -218,6 +218,9 @@ class ApercuAttestation(QWidget):
         peintre.drawRect(cadre)
         self._texte(peintre, page, 0.55, haut, 0.39, 0.024,
                     "Cachet et Signature", 10, True, Qt.AlignCenter)
+        # Initiales du rédacteur, reprises du champ « Nom du rédacteur ».
+        self._texte(peintre, page, 0.55, haut + 0.024, 0.39, 0.106,
+                    attestation.initiales_redacteur, 12, True, Qt.AlignCenter)
 
     def _dessiner_pied(self, peintre: QPainter, page: QRectF) -> None:
         self._texte(
