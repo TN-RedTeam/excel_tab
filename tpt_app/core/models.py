@@ -36,9 +36,9 @@ MOTIFS_PRINCIPAUX = {
 }
 
 #: Motifs d'absence proposés par le classeur (liste ``$R$2:$R$5`` pour ML36,
-#: ``$S$2:$S$4`` pour ML37). ML35 ne comporte pas de ligne « motif d'absence ».
+#: ``$S$2:$S$4`` pour ML37). La ML35 partage la même liste que la ML36.
 MOTIFS_ABSENCE = {
-    REGIME_ML35: (),
+    REGIME_ML35: ("Maladie", "CA / JEM", "Autres absences", "Abs sans solde"),
     REGIME_ML36: ("Maladie", "CA / JEM", "Autres absences", "Abs sans solde"),
     REGIME_ML37: ("MALADIE", "JEM", "Abs sans solde"),
 }
@@ -420,7 +420,8 @@ class ResultatPeriodeML35:
     index: int
     date_debut: Optional[dt.date] = None
     date_fin: Optional[dt.date] = None
-    motif: str = ""
+    motif: str = ""                         # motif principal (M_n : ML35 ou CA)
+    motif_absence: str = ""                 # motif d'absence éventuel
     nb_jours: Decimal = ZERO                # L_n
     ij_a_retirer: Decimal = ZERO            # K_(11+n)
     ij_taxees: Decimal = ZERO               # L_(11+n)

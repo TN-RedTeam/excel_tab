@@ -264,6 +264,18 @@ def test_menu_unique_en_ml37(fenetre):
         "", "ML37", "CA", "MALADIE", "JEM", "Abs sans solde"]
 
 
+def test_menu_unique_en_ml35(fenetre):
+    """La ML35 propose tous les motifs, comme la ML36."""
+    fenetre.charger_dossier(Dossier(regime="ML35"))
+    table = fenetre.page_periodes.table
+    table._ajouter()
+
+    motif = table.table.cellWidget(0, 1)
+    assert [motif.itemText(i) for i in range(motif.count())] == [
+        "", "ML35", "CA", "Maladie", "CA / JEM", "Autres absences",
+        "Abs sans solde"]
+
+
 def test_choix_d_une_absence_renseigne_les_deux_motifs(fenetre):
     """Choisir « Maladie » place le régime en motif principal et l'absence."""
     fenetre.charger_dossier(Dossier(regime=REGIME_ML36))

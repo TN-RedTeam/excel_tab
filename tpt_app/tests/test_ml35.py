@@ -245,6 +245,41 @@ def test_acceptation_au_centime_contre_le_classeur(tmp_path):
         egal(f"L{24 + i}", p.a_declarer_taxe)  # taxé
 
 
+def test_periode_d_absence_non_remuneree_et_libellee():
+    """Une période d'absence ML35 (Maladie) ne compte pas et n'est pas payée."""
+    ml35_dossier = DossierML35(
+        salarie=salarie(),
+        mois=dt.date(2025, 7, 1),
+        nb_jours_mois=30,
+        fixe_100=Decimal(3000),
+        majo=Decimal(200),
+        paniers=Decimal(100),
+        ij_total_tpt=Decimal(900),
+        periodes=[
+            periode(1, 10, "ML35"),
+            periode(11, 20, "ML35", "Maladie"),   # absence → neutralisée
+            periode(21, 30, "ML35"),
+        ],
+    )
+    resultat = ml35.calculer(ml35_dossier)
+
+    # La maladie est exclue du total des jours ML35 (20, pas 30).
+    assert resultat.jours_ml35 == Decimal(20)
+    maladie = resultat.periodes[1]
+    assert maladie.fixe == ZERO
+    assert maladie.majo_paniers == ZERO
+    assert maladie.ij_a_retirer == ZERO
+    assert maladie.a_declarer == ZERO
+
+    # L'attestation affiche « Maladie » et masque le montant.
+    from tpt_app.core.attestation import LIBELLE_MALADIE
+    attestation = moteur.calculer(
+        Dossier(regime=REGIME_ML35, ml35=ml35_dossier)).attestation
+    assert attestation.lignes[1].libelle == LIBELLE_MALADIE
+    assert attestation.lignes[1].montant is None
+    assert attestation.lignes[0].montant is not None
+
+
 def test_motif_insensible_a_la_casse_et_aux_espaces():
     """La liste déroulante du classeur contient « CA » avec une espace finale."""
     dossier = DossierML35(

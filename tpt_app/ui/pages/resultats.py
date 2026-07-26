@@ -167,7 +167,7 @@ class PageResultats(Page):
                 str(p.index),
                 format_date(p.date_debut),
                 format_date(p.date_fin),
-                p.motif,
+                p.motif_absence or p.motif,
                 format_decimal(p.nb_jours, 0),
                 format_euro(p.fixe),
                 format_euro(p.majo_paniers),

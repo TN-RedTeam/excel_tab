@@ -197,11 +197,15 @@ def _remplir_ml35(feuille, saisie, resultat: ResultatML35) -> None:
         _ecrire(feuille, coordonnee, libelle or None)
 
     for index, ligne in enumerate(resultat.periodes):
+        # La colonne unique du motif porte l'absence si elle existe, sinon le
+        # motif principal (colonne « M » de la matrice, « F » du bloc CPAM).
+        motif = ligne.motif_absence or ligne.motif
+
         saisie_ligne = mc.ML35_LIGNE_PERIODE_DEPART + index
         _ecrire(feuille, f"I{saisie_ligne}", ligne.date_debut)
         _ecrire(feuille, f"K{saisie_ligne}", ligne.date_fin)
         _ecrire(feuille, f"L{saisie_ligne}", _brut(ligne.nb_jours) or None)
-        _ecrire(feuille, f"M{saisie_ligne}", ligne.motif or None)
+        _ecrire(feuille, f"M{saisie_ligne}", motif or None)
 
         ij = mc.ML35_LIGNE_IJ_DEPART + index
         _ecrire(feuille, f"H{ij}", ligne.date_debut)
@@ -213,7 +217,7 @@ def _remplir_ml35(feuille, saisie, resultat: ResultatML35) -> None:
         _ecrire(feuille, f"B{cpam}", ligne.date_debut)
         _ecrire(feuille, f"D{cpam}", ligne.date_fin)
         _ecrire(feuille, f"E{cpam}", _brut(ligne.nb_jours) or None)
-        _ecrire(feuille, f"F{cpam}", ligne.motif or None)
+        _ecrire(feuille, f"F{cpam}", motif or None)
         _ecrire(feuille, f"H{cpam}", _nombre(ligne.fixe))
         _ecrire(feuille, f"I{cpam}", _nombre(ligne.majo_paniers))
         _ecrire(feuille, f"J{cpam}", _nombre(ligne.ij_a_retirer))

@@ -18,6 +18,10 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - **Lignes libres dans la rémunération ML35**, comme en ML36/ML37 : les lignes
   du groupe « base » s'ajoutent au sous-total F4, celles du groupe
   « majorations » au total F7. Chaque ligne a un intitulé saisissable.
+- **Tous les motifs d'absence dans les périodes ML35** (`Maladie`, `CA / JEM`,
+  `Autres absences`, `Abs sans solde`), comme en ML36/ML37. Une période
+  d'absence n'est pas rémunérée, est exclue du total des jours ML35, et figure
+  dans l'attestation avec son libellé.
 
 ### Modifié
 
