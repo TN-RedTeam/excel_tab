@@ -167,26 +167,28 @@ class BlocML35(_BlocRegime):
         disposition = QVBoxLayout(self)
         disposition.setContentsMargins(0, 0, 0, 0)
 
+        # ML35 ne comporte aucun montant SIACI dans le classeur : le groupe
+        # « primes » est absent. Les lignes libres tiennent ce rôle.
         groupe_base = QGroupBox("Base salariale")
         base = Formulaire(groupe_base)
         self._montant(base, "fixe_100", "FIXE 100 %")
         self._montant(base, "p_transfert", "P. TRANS")
+        for index in range(3):
+            self._ligne_libre(base, f"base_libre_{index}", f"Ligne libre {index + 1}")
         self.fixe_transfert = ValeurCalculee()
         base.ajouter("FIXE + P. TRANS", self.fixe_transfert)
         disposition.addWidget(groupe_base)
 
-        groupe_majorations = QGroupBox("Majorations et paniers")
+        groupe_majorations = QGroupBox("Majorations et primes")
         majorations = Formulaire(groupe_majorations)
         self._montant(majorations, "majo", "MAJO")
         self._montant(majorations, "paniers", "PANIERS")
+        for index in range(3):
+            self._ligne_libre(majorations, f"majoration_libre_{index}",
+                              f"Ligne libre {index + 1}")
         self.total = ValeurCalculee()
         majorations.ajouter("TOTAL", self.total)
         disposition.addWidget(groupe_majorations)
-
-        groupe_primes = QGroupBox("SIACI et primes")
-        primes = Formulaire(groupe_primes)
-        self._montant(primes, "prime", "Prime")
-        disposition.addWidget(groupe_primes)
 
         groupe_ij = QGroupBox("Indemnités journalières")
         ij = Formulaire(groupe_ij)
@@ -202,12 +204,45 @@ class BlocML35(_BlocRegime):
 
     def charger(self, matrice) -> None:
         for clef, editeur in self.champs.items():
-            editeur.definir_valeur(getattr(matrice, clef, ZERO))
+            if clef.startswith("base_libre_"):
+                index = int(clef.rsplit("_", 1)[1])
+                valeur = (list(matrice.bases_libres) + [ZERO] * 3)[index]
+            elif clef.startswith("majoration_libre_"):
+                index = int(clef.rsplit("_", 1)[1])
+                valeur = (list(matrice.majorations_libres) + [ZERO] * 3)[index]
+            else:
+                valeur = getattr(matrice, clef, ZERO)
+            editeur.definir_valeur(valeur)
+
+        for clef, intitule in self.intitules.items():
+            famille, index = clef.rsplit("_", 1)
+            source = ("libelles_bases_libres" if famille == "base_libre"
+                      else "libelles_majorations_libres")
+            libelles = list(getattr(matrice, source, [])) + ["", "", ""]
+            intitule.setText(libelles[int(index)])
+
         self.taux_perte.definir_valeur(matrice.taux_perte)
 
     def appliquer(self, matrice) -> None:
+        bases, majorations = [ZERO] * 3, [ZERO] * 3
         for clef, editeur in self.champs.items():
-            setattr(matrice, clef, editeur.valeur())
+            if clef.startswith("base_libre_"):
+                bases[int(clef.rsplit("_", 1)[1])] = editeur.valeur()
+            elif clef.startswith("majoration_libre_"):
+                majorations[int(clef.rsplit("_", 1)[1])] = editeur.valeur()
+            else:
+                setattr(matrice, clef, editeur.valeur())
+        matrice.bases_libres = bases
+        matrice.majorations_libres = majorations
+
+        libelles_bases, libelles_majorations = [""] * 3, [""] * 3
+        for clef, intitule in self.intitules.items():
+            famille, index = clef.rsplit("_", 1)
+            cible = (libelles_bases if famille == "base_libre" else libelles_majorations)
+            cible[int(index)] = intitule.text().strip()
+        matrice.libelles_bases_libres = libelles_bases
+        matrice.libelles_majorations_libres = libelles_majorations
+
         matrice.taux_perte = self.taux_perte.valeur()
         matrice.taux_declaration = self.taux_perte.valeur()
 

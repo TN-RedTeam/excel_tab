@@ -153,12 +153,18 @@ ML35_ENTREES = {
     "p_transfert": "F3",
     "majo": "F5",
     "paniers": "F6",
-    "prime": "F8",
     "ij_total_tpt": "C17",
     "igr": "D17",
     "taux_perte": "F16",
     "taux_declaration": "L23",
 }
+#: Lignes libres ML35. Le gabarit d'origine laisse la bande sous le bloc de
+#: référence (lignes 8 à 10) vide : elle accueille les lignes ajoutées, en
+#: valeurs uniquement. F4 et F7 sont écrits comme totaux, ces montants inclus.
+ML35_BASES_LIBRES = ("E8", "E9", "E10")
+ML35_LIBELLES_BASES_LIBRES = ("D8", "D9", "D10")
+ML35_MAJORATIONS_LIBRES = ("G8", "G9", "G10")
+ML35_LIBELLES_MAJORATIONS_LIBRES = ("F8", "F9", "F10")
 
 ML35_CALCULES = {
     "fixe_plus_transfert": "F4",
@@ -173,10 +179,6 @@ ML35_NB_PERIODES = 8
 ML35_LIGNE_PERIODE_DEPART = 3      # lignes 3 à 10 : I=début, K=fin, L=nb jours, M=motif
 ML35_LIGNE_IJ_DEPART = 14          # lignes 14 à 21 : H/J dates, K=IJ, L=IJ taxées
 ML35_LIGNE_CPAM_DEPART = 24        # lignes 24 à 31 : perçu CPAM
-#: Colonne « Prime » ventilée du bloc perçu CPAM (à côté de MAJO + PAN).
-ML35_COLONNE_PRIME_CPAM = "G"
-ML35_LIBELLE_PRIME = ("E8", "PRIME")            # intitulé de la prime de référence
-ML35_LIBELLE_PRIME_CPAM = ("G23", "PRIME")      # en-tête de la colonne ventilée
 
 
 # --------------------------------------------------------------------------

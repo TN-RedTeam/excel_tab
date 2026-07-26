@@ -181,7 +181,12 @@ def _lire_ml35(feuille) -> DossierML35:
         p_transfert=_montant(feuille, cellules["p_transfert"]),
         majo=_montant(feuille, cellules["majo"]),
         paniers=_montant(feuille, cellules["paniers"]),
-        prime=_montant(feuille, cellules["prime"]),
+        bases_libres=[_montant(feuille, c) for c in mc.ML35_BASES_LIBRES],
+        libelles_bases_libres=[_texte(feuille, c)
+                               for c in mc.ML35_LIBELLES_BASES_LIBRES],
+        majorations_libres=[_montant(feuille, c) for c in mc.ML35_MAJORATIONS_LIBRES],
+        libelles_majorations_libres=[_texte(feuille, c)
+                                     for c in mc.ML35_LIBELLES_MAJORATIONS_LIBRES],
         ij_total_tpt=_montant(feuille, cellules["ij_total_tpt"]),
         igr=_montant(feuille, cellules["igr"]),
         taux_perte=_montant(feuille, cellules["taux_perte"]) or Decimal("0.21"),

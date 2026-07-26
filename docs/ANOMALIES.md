@@ -187,9 +187,29 @@ division par zéro, aucune propagation d'erreur — cf. test d'acceptation 7.
 
 ---
 
+## 7. Attestation d'un dossier ML35 : colonnes PUA/PFA, primes et taux vides *(décision à confirmer)*
+
+Le classeur d'origine ne branche l'attestation Vivinter que sur les onglets ML36
+et ML37 : un dossier ML35 produisait une attestation **vide**. L'application la
+branche désormais sur le bloc « Perçu CPAM » de la ML35 (dates + montant
+« À déclarer », ou « Congés annuels » pour une période `CA`).
+
+Les colonnes **Dont PUA / PFA**, **Autres primes** et **Taux d'activité partielle**
+sont laissées **vides** : la ML35 est un régime d'**incapacité totale**, sans
+temps partiel ni ventilation de primes, et le classeur ne comporte aucune formule
+les alimentant pour ce régime.
+
+**Ce choix est cohérent avec la nature du régime, mais ne provient d'aucune
+formule du classeur** : il n'a jamais été spécifié. Un bandeau d'information le
+rappelle dans l'aperçu de l'attestation, et les trois colonnes peuvent être
+réactivées si la règle métier l'exige.
+
+---
+
 ## Récapitulatif des décisions en attente
 
 | # | Décision | Qui tranche |
 |---|---|---|
 | 9.1 | Régulariser ou non les dossiers historiques dont les périodes d'absence ont été valorisées à tort ; à terme, désactiver le mode de compatibilité v6 | Service paie |
 | 9.2 | Confirmer à Vivinter qu'une attestation de plus de 7 lignes est recevable — le format du formulaire est respecté, seul le nombre de lignes du tableau change | Service paie / Vivinter |
+| 7 | Confirmer que l'attestation ML35 laisse vides les colonnes PUA/PFA, autres primes et taux d'activité partielle | Service paie / Vivinter |

@@ -196,7 +196,6 @@ def test_dossier_ml35_avec_periodes_s_affiche(fenetre):
     dossier.ml35.mois = dt.date(2025, 7, 1)
     dossier.ml35.nb_jours_mois = 30
     dossier.ml35.fixe_100 = Decimal(3000)
-    dossier.ml35.prime = Decimal(400)
     dossier.ml35.ij_total_tpt = Decimal(900)
     dossier.ml35.periodes = [
         Periode(motif_principal="ML35", date_debut=dt.date(2025, 7, 1),
@@ -206,16 +205,21 @@ def test_dossier_ml35_avec_periodes_s_affiche(fenetre):
     ]
     fenetre.charger_dossier(dossier)
 
-    # La colonne « Prime » apparaît dans le détail par période.
-    table = fenetre.page_resultats.table
-    entetes = [table.horizontalHeaderItem(c).text() for c in range(table.columnCount())]
-    assert "Prime" in entetes
-    # La saisie porte bien un champ « Prime » unique.
+    # Saisie ML35 : lignes libres présentes, aucun champ SIACI ni prime.
     bloc = fenetre.page_remuneration.blocs["ML35"]
-    assert "prime" in bloc.champs
+    assert "base_libre_0" in bloc.champs
+    assert "majoration_libre_0" in bloc.champs
+    assert "prime" not in bloc.champs
+    assert "montant_siaci" not in bloc.champs
     assert not hasattr(bloc, "ij_par_jour")
     # La colonne « 30ème » de la table des périodes reste vide en ML35.
     assert fenetre.page_periodes.table.table.item(0, 5).text() == ""
+    # Le bandeau d'information ML35 s'affiche sur la page Attestation.
+    assert not fenetre.page_attestation.info_ml35.isHidden()
+    # L'attestation n'est plus vide : elle reprend les périodes ML35.
+    lignes = fenetre.resultat.attestation.lignes
+    assert not lignes[0].vide
+    assert lignes[0].source == "ML35"
 
 
 def test_saisie_de_date_au_clavier(fenetre):
