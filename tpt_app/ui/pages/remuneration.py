@@ -167,17 +167,26 @@ class BlocML35(_BlocRegime):
         disposition = QVBoxLayout(self)
         disposition.setContentsMargins(0, 0, 0, 0)
 
-        groupe = QGroupBox("Rémunération de référence")
-        formulaire = Formulaire(groupe)
-        self._montant(formulaire, "fixe_100", "FIXE 100 %")
-        self._montant(formulaire, "p_transfert", "P. TRANS")
+        groupe_base = QGroupBox("Base salariale")
+        base = Formulaire(groupe_base)
+        self._montant(base, "fixe_100", "FIXE 100 %")
+        self._montant(base, "p_transfert", "P. TRANS")
         self.fixe_transfert = ValeurCalculee()
-        formulaire.ajouter("FIXE + P. TRANS", self.fixe_transfert)
-        self._montant(formulaire, "majo", "MAJO")
-        self._montant(formulaire, "paniers", "PANIERS")
+        base.ajouter("FIXE + P. TRANS", self.fixe_transfert)
+        disposition.addWidget(groupe_base)
+
+        groupe_majorations = QGroupBox("Majorations et paniers")
+        majorations = Formulaire(groupe_majorations)
+        self._montant(majorations, "majo", "MAJO")
+        self._montant(majorations, "paniers", "PANIERS")
         self.total = ValeurCalculee()
-        formulaire.ajouter("TOTAL", self.total)
-        disposition.addWidget(groupe)
+        majorations.ajouter("TOTAL", self.total)
+        disposition.addWidget(groupe_majorations)
+
+        groupe_primes = QGroupBox("SIACI et primes")
+        primes = Formulaire(groupe_primes)
+        self._montant(primes, "prime", "Prime")
+        disposition.addWidget(groupe_primes)
 
         groupe_ij = QGroupBox("Indemnités journalières")
         ij = Formulaire(groupe_ij)
@@ -188,8 +197,6 @@ class BlocML35(_BlocRegime):
         self.taux_perte = self._taux(ij, "Taux de perte")
         self.perte_declaree = ValeurCalculee()
         ij.ajouter("Perte déclarée", self.perte_declaree)
-        self.ij_par_jour = ValeurCalculee()
-        ij.ajouter("IJ / jour", self.ij_par_jour)
         disposition.addWidget(groupe_ij)
         disposition.addStretch(1)
 
@@ -211,7 +218,6 @@ class BlocML35(_BlocRegime):
         self.total.definir_valeur(resultat.total_remuneration)
         self.total_ij.definir_valeur(resultat.total_ij)
         self.perte_declaree.definir_valeur(resultat.perte_declaree)
-        self.ij_par_jour.definir_valeur(resultat.ij_par_jour)
 
 
 class PageRemuneration(Page):

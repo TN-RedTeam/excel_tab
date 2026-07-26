@@ -15,15 +15,20 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from ...core.arrondi import format_date, format_decimal, format_euro
-from ...core.models import REGIME_ML35, Dossier
+from ...core.models import REGIME_ML35, REGIME_ML37, Dossier
 from ..theme import UNITE
 from ..widgets.champs import Formulaire, ValeurCalculee
 from .base import Page
 
 COLONNES_ML36 = ("N°", "Du", "Au", "Motif", "30ème", "Rétabli", "Perçu", "Perte",
                  "Déclaré Vivinter", "Dont PUA/PFA", "Autres primes")
+#: ML37 ajoute les cotisations à 21 % (F19) sur le perçu et sur la perte.
+COLONNES_ML37 = ("N°", "Du", "Au", "Motif", "30ème", "Rétabli", "Perçu",
+                 "Cotis. perçu 21%", "Perte", "Cotis. perte 21%",
+                 "Déclaré Vivinter", "Dont PUA/PFA", "Autres primes")
 COLONNES_ML35 = ("N°", "Du", "Au", "Motif", "Nb jours", "FIXE", "MAJO + PAN",
-                 "IJ à retirer", "À déclarer", "Taxé")
+                 "Prime", "IJ à retirer", "Cotis. IJ 21%", "À déclarer",
+                 "Cotis. à déclarer 21%")
 
 
 def _table(colonnes) -> QTableWidget:
@@ -86,8 +91,39 @@ class PageResultats(Page):
     def actualiser(self, dossier: Dossier, resultat) -> None:
         if dossier.regime == REGIME_ML35:
             self._afficher_ml35(resultat.ml35)
+        elif dossier.regime == REGIME_ML37:
+            self._afficher_ml37(resultat.ml37)
         else:
             self._afficher_matrice(resultat.matrice_active(dossier.regime))
+
+    def _afficher_ml37(self, matrice) -> None:
+        """Comme ML36, avec en plus les cotisations à 21 % perçu et perte."""
+        self.salaire_retabli.definir_valeur(matrice.salaire_retabli_3201)
+        self.perte_cpam.definir_valeur(matrice.perte_cpam)
+        self.percu_cpam.definir_valeur(matrice.percu_cpam)
+        self.vivinter.definir_valeur(matrice.vivinter_percu)
+        self.somme_trentiemes.definir_valeur(matrice.somme_trentiemes, monetaire=False)
+        self.absences_sans_solde.definir_valeur(matrice.total_absences_sans_solde)
+
+        renseignees = [p for p in matrice.periodes if p.renseignee]
+        self._remplir(COLONNES_ML37, [
+            (
+                str(p.index),
+                format_date(p.date_debut),
+                format_date(p.date_fin),
+                " / ".join(m for m in (p.motif_principal, p.motif_absence) if m),
+                format_decimal(p.trentieme, 4),
+                format_euro(p.retabli_total),
+                format_euro(p.percu_total),
+                format_euro(p.taxation_percu),
+                format_euro(p.perte),
+                format_euro(p.taxation_perte),
+                format_euro(p.montant_declare),
+                format_euro(p.dont_pua_pfa, vide_si_zero=True),
+                format_euro(p.autres_primes, vide_si_zero=True),
+            )
+            for p in renseignees
+        ])
 
     def _afficher_matrice(self, matrice) -> None:
         self.salaire_retabli.definir_valeur(matrice.salaire_retabli_3201)
@@ -135,7 +171,9 @@ class PageResultats(Page):
                 format_decimal(p.nb_jours, 0),
                 format_euro(p.fixe),
                 format_euro(p.majo_paniers),
+                format_euro(p.prime, vide_si_zero=True),
                 format_euro(p.ij_a_retirer),
+                format_euro(p.ij_taxees),
                 format_euro(p.a_declarer),
                 format_euro(p.a_declarer_taxe),
             )

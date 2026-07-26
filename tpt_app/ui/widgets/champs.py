@@ -11,7 +11,7 @@ import datetime as dt
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
-from PySide6.QtCore import QDate, QEvent, QLocale, Qt, Signal
+from PySide6.QtCore import QDate, QEvent, QLocale, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QComboBox,
     QDateEdit,
@@ -213,12 +213,21 @@ class SaisieDate(QDateEdit):
         On se contente de tourner la page du calendrier : aucune date n'est
         sélectionnée tant que l'utilisateur n'a pas cliqué, refermer la fenêtre
         laisse donc bien le champ vide.
+
+        Le repositionnement est **différé** (``singleShot(0)``) : à l'ouverture,
+        Qt synchronise le calendrier sur la date sélectionnée — la date minimale
+        (janvier 1900) pour un champ vide — *après* l'événement ``Show``. Corriger
+        la page immédiatement serait donc écrasé ; on le fait au tour de boucle
+        suivant, une fois cette synchronisation passée.
         """
         if objet is self.calendarWidget() and evenement.type() == QEvent.Show \
                 and self._vide:
-            aujourdhui = QDate.currentDate()
-            self.calendarWidget().setCurrentPage(aujourdhui.year(), aujourdhui.month())
+            QTimer.singleShot(0, self._afficher_mois_courant)
         return super().eventFilter(objet, evenement)
+
+    def _afficher_mois_courant(self) -> None:
+        aujourdhui = QDate.currentDate()
+        self.calendarWidget().setCurrentPage(aujourdhui.year(), aujourdhui.month())
 
     def keyPressEvent(self, evenement):           # noqa: N802 (API Qt)
         """Amorce un champ vide à la date du jour dès la première frappe."""

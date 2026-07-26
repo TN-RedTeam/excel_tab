@@ -278,6 +278,7 @@ class DossierML35:
     p_transfert: Decimal = ZERO               # F3
     majo: Decimal = ZERO                      # F5
     paniers: Decimal = ZERO                   # F6
+    prime: Decimal = ZERO                     # SIACI et primes, regroupées
 
     ij_total_tpt: Decimal = ZERO              # C17
     igr: Decimal = ZERO                       # D17
@@ -417,6 +418,7 @@ class ResultatPeriodeML35:
     ij_taxees: Decimal = ZERO               # L_(11+n)
     fixe: Decimal = ZERO                    # H_r
     majo_paniers: Decimal = ZERO            # I_r
+    prime: Decimal = ZERO                   # ventilée comme I_r, ajoutée à K_r
     a_declarer: Decimal = ZERO              # K_r
     a_declarer_taxe: Decimal = ZERO         # L_r
 

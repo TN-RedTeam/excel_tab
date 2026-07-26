@@ -125,13 +125,20 @@ class TablePeriodes(QWidget):
         return resultat
 
     def actualiser_calculs(self, resultats) -> None:
-        """Renseigne les colonnes calculées « Nb jours » et « 30ème »."""
+        """Renseigne les colonnes calculées « Nb jours » et « 30ème ».
+
+        La ML35 raisonne en jours calendaires et ignore la notion de 30ème : ses
+        résultats n'en portent pas, la colonne reste alors vide.
+        """
         for ligne in range(self.table.rowCount()):
             if ligne >= len(resultats):
                 break
             resultat = resultats[ligne]
             self._definir_cellule(ligne, 4, format_decimal(resultat.nb_jours, 0))
-            self._definir_cellule(ligne, 5, format_decimal(resultat.trentieme, 4))
+            trentieme = getattr(resultat, "trentieme", None)
+            self._definir_cellule(
+                ligne, 5,
+                format_decimal(trentieme, 4) if trentieme is not None else "")
 
     def signaler_anomalie(self, index: int, colonne: str, message: str,
                           gravite: str) -> None:

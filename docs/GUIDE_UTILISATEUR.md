@@ -118,6 +118,18 @@ l'intitulé : cliquez sur « Ligne libre 1 » et tapez le nom de la rubrique
 (« PRIME ANCIENNETÉ », « MAJ DIMANCHE »…). L'intitulé est enregistré avec le
 dossier et reporté dans la cellule correspondante du fichier Excel exporté.
 
+### Cas de la ML35
+
+La ML35 reprend la même structure : **Base salariale** (FIXE 100 %, P. TRANS),
+**Majorations et paniers** (MAJO, PANIERS), **SIACI et primes** et
+**Indemnités journalières** (IJ TOTAL TPT, IGR, taux de perte).
+
+La rubrique **SIACI et primes** se saisit en un seul champ **Prime**. Cette prime
+est ventilée au prorata des jours ML35, comme les majorations et paniers, et
+**s'ajoute au FIXE et aux MAJO + PAN** dans le montant à déclarer. Elle apparaît
+dans une colonne « Prime » du détail par période (étape « Résultats ») et dans le
+bloc « Perçu CPAM » du classeur exporté, à côté de « MAJO + PAN ».
+
 ---
 
 ## 6. Étape 4 — Périodes
