@@ -181,6 +181,7 @@ def _lire_ml35(feuille) -> DossierML35:
         p_transfert=_montant(feuille, cellules["p_transfert"]),
         majo=_montant(feuille, cellules["majo"]),
         paniers=_montant(feuille, cellules["paniers"]),
+        prime=_montant(feuille, cellules["prime"]),
         ij_total_tpt=_montant(feuille, cellules["ij_total_tpt"]),
         igr=_montant(feuille, cellules["igr"]),
         taux_perte=_montant(feuille, cellules["taux_perte"]) or Decimal("0.21"),

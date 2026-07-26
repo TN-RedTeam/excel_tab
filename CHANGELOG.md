@@ -2,6 +2,30 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.4.0] — 2026-07-26
+
+### Ajouté
+
+- **Colonnes de cotisations à 21 %** sur l'étape « Résultats » : le perçu et la
+  perte de la ML37, et la retenue d'IJ et le montant à déclarer de la ML35, sont
+  désormais accompagnés de leur cotisation.
+- **Prime ML35.** La rubrique « SIACI et primes » de la ML35 se saisit en un
+  champ unique « Prime ». Cette prime est ventilée au prorata des jours ML35,
+  comme les majorations et paniers, et s'ajoute au FIXE et aux MAJO + PAN dans
+  le calcul du montant à déclarer. Une colonne « Prime » apparaît à côté de
+  « MAJO + PAN » dans le détail par période, et dans le bloc « Perçu CPAM » du
+  classeur exporté.
+
+### Modifié
+
+- **Rémunération ML35.** La saisie reprend la structure de la ML36 et de la ML37 :
+  « Base salariale », « Majorations et paniers », « SIACI et primes » puis
+  « Indemnités journalières ». Le champ « IJ / jour » est retiré de l'affichage.
+- L'**adresse mail** de l'attestation ne se tronque plus dans l'aperçu à l'écran :
+  sa taille de police s'ajuste pour tenir dans la case.
+- Le **calendrier** s'ouvre partout sur le mois courant, y compris là où il
+  s'ouvrait encore sur janvier 1900.
+
 ## [1.3.0] — 2026-07-25
 
 ### Supprimé

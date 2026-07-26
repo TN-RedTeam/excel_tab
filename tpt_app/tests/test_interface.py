@@ -190,6 +190,34 @@ def test_calendrier_s_ouvre_sur_le_mois_en_cours(fenetre, application):
     assert champ.valeur() is None
 
 
+def test_dossier_ml35_avec_periodes_s_affiche(fenetre):
+    """Un dossier ML35 renseigné ne doit pas planter : pas de 30ème en ML35."""
+    dossier = Dossier(regime="ML35")
+    dossier.ml35.mois = dt.date(2025, 7, 1)
+    dossier.ml35.nb_jours_mois = 30
+    dossier.ml35.fixe_100 = Decimal(3000)
+    dossier.ml35.prime = Decimal(400)
+    dossier.ml35.ij_total_tpt = Decimal(900)
+    dossier.ml35.periodes = [
+        Periode(motif_principal="ML35", date_debut=dt.date(2025, 7, 1),
+                date_fin=dt.date(2025, 7, 10)),
+        Periode(motif_principal="ML35", date_debut=dt.date(2025, 7, 21),
+                date_fin=dt.date(2025, 7, 30)),
+    ]
+    fenetre.charger_dossier(dossier)
+
+    # La colonne « Prime » apparaît dans le détail par période.
+    table = fenetre.page_resultats.table
+    entetes = [table.horizontalHeaderItem(c).text() for c in range(table.columnCount())]
+    assert "Prime" in entetes
+    # La saisie porte bien un champ « Prime » unique.
+    bloc = fenetre.page_remuneration.blocs["ML35"]
+    assert "prime" in bloc.champs
+    assert not hasattr(bloc, "ij_par_jour")
+    # La colonne « 30ème » de la table des périodes reste vide en ML35.
+    assert fenetre.page_periodes.table.table.item(0, 5).text() == ""
+
+
 def test_saisie_de_date_au_clavier(fenetre):
     """Taper un chiffre sur un champ vide l'amorce à la date du jour."""
     from PySide6.QtCore import QDate, Qt

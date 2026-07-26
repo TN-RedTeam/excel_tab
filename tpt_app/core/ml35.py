@@ -42,6 +42,7 @@ def calculer(dossier: DossierML35) -> ResultatML35:
     fixe_transfert = dossier.fixe_plus_transfert           # F4
     majo = dec(dossier.majo)                               # F5
     paniers = dec(dossier.paniers)                         # F6
+    prime = dec(dossier.prime)                             # SIACI + primes
     ij_total = dec(dossier.ij_total_tpt)                   # C17
     igr = dec(dossier.igr)                                 # D17
     taux_perte = dec(dossier.taux_perte)                   # F16
@@ -73,13 +74,16 @@ def calculer(dossier: DossierML35) -> ResultatML35:
         else:
             fixe = (fixe_transfert / TRENTE) * (nb / nb_jours_mois * TRENTE)
 
-        # I_r
+        # I_r et la prime, ventilées au prorata des jours ML35.
         if ml35 and jours_ml35:
             majo_paniers = (majo + paniers) / jours_ml35 * nb
+            prime_periode = prime / jours_ml35 * nb
         else:
             majo_paniers = ZERO
+            prime_periode = ZERO
 
-        a_declarer = fixe + majo_paniers - ij_a_retirer     # K_r
+        # K_r : la prime s'ajoute au FIXE et aux MAJO + PAN.
+        a_declarer = fixe + majo_paniers + prime_periode - ij_a_retirer
         resultats.append(
             ResultatPeriodeML35(
                 index=i + 1,
@@ -91,6 +95,7 @@ def calculer(dossier: DossierML35) -> ResultatML35:
                 ij_taxees=ij_taxees,
                 fixe=fixe,
                 majo_paniers=majo_paniers,
+                prime=prime_periode,
                 a_declarer=a_declarer,
                 a_declarer_taxe=a_declarer * taux_declaration,   # L_r
             )

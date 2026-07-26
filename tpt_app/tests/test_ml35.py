@@ -79,6 +79,23 @@ def test_percu_cpam(dossier):
     assert arrondi_centime(resultat.total_a_declarer) == Decimal("2400.00")
 
 
+def test_prime_ventilee_et_ajoutee_au_declare(dossier):
+    """La prime SIACI se répartit au prorata des jours ML35 et gonfle K_r."""
+    dossier.prime = Decimal(400)          # 20 jours ML35 → 20 €/jour
+    resultat = ml35.calculer(dossier)
+    p1, p2, p3 = resultat.periodes[:3]
+
+    # 10 jours ML35 sur 20 → 200 € par période ML35, rien sur le congé annuel.
+    assert arrondi_centime(p1.prime) == Decimal("200.00")
+    assert p2.prime == ZERO
+    assert arrondi_centime(p3.prime) == Decimal("200.00")
+
+    # K_r = FIXE + MAJO/PAN + PRIME − IJ ; ici 700 + 200 = 900.
+    assert arrondi_centime(p1.a_declarer) == Decimal("900.00")
+    assert arrondi_centime(p1.a_declarer_taxe) == Decimal("189.00")
+    assert arrondi_centime(resultat.total_a_declarer) == Decimal("2800.00")
+
+
 def test_huit_periodes_maximum(dossier):
     resultat = ml35.calculer(dossier)
     assert len(resultat.periodes) == 8
