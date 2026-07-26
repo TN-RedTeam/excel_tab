@@ -18,7 +18,6 @@ from typing import Optional
 
 from .arrondi import ZERO, dec
 from .models import (
-    MOTIF_CA,
     NB_PERIODES_MAX,
     NB_PERIODES_MAX_ML35,
     REGIME_ML35,
@@ -91,18 +90,19 @@ def _construire_ligne(index: int, source: str, resultat, taux: Decimal) -> Ligne
 def _construire_ligne_ml35(index: int, periode: ResultatPeriodeML35) -> LigneAttestation:
     """Ligne d'attestation issue du bloc « Perçu CPAM » de la ML35.
 
-    Colonne D : « Congés annuels » si le motif est ``CA``, sinon le montant
-    ``A DÉCLARER`` (K_r). Les colonnes Dont PUA/PFA, Autres primes et Taux sont
-    laissées vides : la ML35 est un régime d'incapacité totale (cf. ANOMALIES §7).
+    Colonne D : le libellé du motif (« Congés annuels », « Maladie »…) s'il y en
+    a un — motif ``CA`` ou motif d'absence —, sinon le montant ``A DÉCLARER``
+    (K_r). Les colonnes Dont PUA/PFA, Autres primes et Taux sont laissées vides :
+    la ML35 est un régime d'incapacité totale (cf. ANOMALIES §7).
     """
-    congés = (periode.motif or "").strip().upper() == MOTIF_CA
+    libelle = libelle_motif(periode.motif, periode.motif_absence)
     return LigneAttestation(
         index=index,
         source=REGIME_ML35,
         date_debut=periode.date_debut,
         date_fin=periode.date_fin,
-        libelle=LIBELLE_CONGES if congés else None,
-        montant=None if congés else dec(periode.a_declarer),
+        libelle=libelle,
+        montant=None if libelle else dec(periode.a_declarer),
     )
 
 

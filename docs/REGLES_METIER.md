@@ -211,8 +211,10 @@ F_{p+4} = IF($E_p>0,D_{p+4}*$F$19,B_{p+4}*$F$19)
 ## 4. MATRICE ML35
 
 Jusqu'à **8 périodes**, lignes 3 à 10 (`I` = date de début, `K` = date de fin,
-`L` = nb de jours, `M` = motif). Motifs : `ML35`, `CA`.
-Cet onglet **n'alimente pas** l'attestation Vivinter.
+`L` = nb de jours, `M` = motif). Motifs d'activité : `ML35`, `CA` ; motifs
+d'absence (extension applicative, comme en ML36/ML37) : `Maladie`, `CA / JEM`,
+`Autres absences`, `Abs sans solde`. Une période d'absence est neutralisée
+(fixe, ventilation et montant à déclarer nuls) et exclue du total `B17`.
 
 | Cellule | Formule Excel | Champ |
 |---|---|---|

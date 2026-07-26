@@ -31,7 +31,14 @@ def _periodes_completees(dossier: DossierML35) -> list[Periode]:
 
 
 def _est_ml35(periode: Periode) -> bool:
-    """Le classeur teste ``M_n="ML35"`` ; la liste déroulante propose ML35 et CA."""
+    """Une période d'incapacité ML35 : motif ``ML35`` et aucune absence.
+
+    Le classeur teste ``M_n="ML35"``. Une période portant un motif d'absence
+    (Maladie, CA/JEM…) n'est pas une journée d'incapacité rémunérée : elle est
+    exclue du total des jours ML35 et de la ventilation, comme en ML36/ML37.
+    """
+    if periode.est_absence:
+        return False
     return (periode.motif_principal or "").strip().upper() == REGIME_ML35
 
 
@@ -67,8 +74,9 @@ def calculer(dossier: DossierML35) -> ResultatML35:
             ij_a_retirer = ZERO
         ij_taxees = ij_a_retirer * taux_perte
 
-        # H_r : le classeur renverrait #VALEUR! sur une ligne vide ; ici 0.
-        if nb == ZERO or nb_jours_mois == ZERO:
+        # H_r : le classeur renverrait #VALEUR! sur une ligne vide ; ici 0. Une
+        # période d'absence n'est pas rémunérée (comme en ML36/ML37).
+        if nb == ZERO or nb_jours_mois == ZERO or periode.est_absence:
             fixe = ZERO
         else:
             fixe = (fixe_transfert / TRENTE) * (nb / nb_jours_mois * TRENTE)
@@ -87,6 +95,7 @@ def calculer(dossier: DossierML35) -> ResultatML35:
                 date_debut=periode.date_debut,
                 date_fin=periode.date_fin,
                 motif=periode.motif_principal,
+                motif_absence=periode.motif_absence,
                 nb_jours=nb,
                 ij_a_retirer=ij_a_retirer,
                 ij_taxees=ij_taxees,

@@ -151,7 +151,11 @@ Le menu « Motif » propose, selon le régime :
 |---|---|
 | **ML36** | `ML36`, `Maladie`, `CA / JEM`, `Autres absences`, `Abs sans solde` |
 | **ML37** | `ML37`, `CA`, `MALADIE`, `JEM`, `Abs sans solde` |
-| **ML35** | `ML35`, `CA` |
+| **ML35** | `ML35`, `CA`, `Maladie`, `CA / JEM`, `Autres absences`, `Abs sans solde` |
+
+Comme en ML36/ML37, une période portant un **motif d'absence** n'est pas
+rémunérée (montant nul) et n'entre pas dans le total des jours ML35 ; elle
+figure dans l'attestation avec son libellé (« Maladie », « Congés annuels »…).
 
 Une période ajoutée démarre avec un **motif vide** : à vous de le choisir.
 

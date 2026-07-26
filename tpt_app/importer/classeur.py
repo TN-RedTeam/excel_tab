@@ -27,6 +27,7 @@ from ..core.models import (
     REGIME_ML36,
     REGIME_ML37,
     Salarie,
+    decomposer_motif,
 )
 
 
@@ -168,8 +169,11 @@ def _lire_ml35(feuille) -> DossierML35:
     periodes = []
     for index in range(mc.ML35_NB_PERIODES):
         ligne = mc.ML35_LIGNE_PERIODE_DEPART + index
+        principal, absence = decomposer_motif(
+            REGIME_ML35, _texte(feuille, f"M{ligne}"))
         periodes.append(Periode(
-            motif_principal=_texte(feuille, f"M{ligne}"),
+            motif_principal=principal,
+            motif_absence=absence,
             date_debut=_date(feuille, f"I{ligne}"),
             date_fin=_date(feuille, f"K{ligne}"),
         ))
