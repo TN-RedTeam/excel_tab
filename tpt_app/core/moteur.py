@@ -53,7 +53,7 @@ def calculer(dossier: Dossier, aujourdhui: Optional[dt.date] = None) -> Resultat
     ml35 = moteur_ml35.calculer(dossier.ml35) if dossier.regime == REGIME_ML35 else None
 
     resultat_attestation = attestation_module.construire(
-        dossier, ml36, ml37, aujourdhui=aujourdhui
+        dossier, ml36, ml37, aujourdhui=aujourdhui, resultat_ml35=ml35
     )
 
     return ResultatDossier(

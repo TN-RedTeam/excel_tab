@@ -18,6 +18,7 @@ from PySide6.QtCore import Qt, Signal
 from ...core.models import (
     MAIL_VIVINTER,
     QUALIFICATIONS,
+    REGIME_ML35,
     RISQUES,
     Dossier,
 )
@@ -63,6 +64,14 @@ class PageAttestation(Page):
         formulaire.ajouter("Téléphone", self.telephone)
         formulaire.ajouter("Mail", self.mail)
         disposition.addWidget(groupe)
+
+        self.info_ml35 = QLabel(
+            "Régime ML35 : PUA, autres primes et taux d'activité non applicables "
+            "— à confirmer.")
+        self.info_ml35.setWordWrap(True)
+        self.info_ml35.setProperty("role", "avertissement")
+        self.info_ml35.setVisible(False)
+        disposition.addWidget(self.info_ml35)
 
         self.avertissement = QLabel()
         self.avertissement.setWordWrap(True)
@@ -128,6 +137,7 @@ class PageAttestation(Page):
 
     def actualiser(self, dossier: Dossier, resultat) -> None:
         self.apercu.definir_attestation(resultat.attestation)
+        self.info_ml35.setVisible(dossier.regime == REGIME_ML35)
 
         bloquantes = [a.message for a in resultat.anomalies_export if a.bloquante]
         if not resultat.valide:

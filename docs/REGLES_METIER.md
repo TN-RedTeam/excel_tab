@@ -227,16 +227,39 @@ Cet onglet **n'alimente pas** l'attestation Vivinter.
 | `L(14+n)` | `=K(14+n)*$F$16` | `ij_taxees` |
 | `H(24+n)` | `=IF(L_n=0,0,(($F$4/30)*(E_r/$B$1*30)))` | `fixe` |
 | `I(24+n)` | `=IF(F_r="ML35",(($F$5+$F$6)/SUMIF(...))*E_r,0)` | `majo_paniers` |
-| `G(24+n)` | `=IF(F_r="ML35",($F$8/SUMIF(...))*E_r,0)` | `prime` |
 | `J(24+n)` | `=K(14+n)` | `ij_a_retirer` |
-| `K(24+n)` | `=H+I+G-J` | `a_declarer` |
+| `K(24+n)` | `=H+I-J` | `a_declarer` |
 | `L(24+n)` | `=K(24+n)*$L$23` | `a_declarer_taxe` |
 
-La **prime** (`F8`, rubrique « SIACI et primes ») regroupe SIACI et primes en une
-seule grandeur. Elle est ventilée au prorata des jours ML35, exactement comme les
-majorations et paniers (`I`), et **s'ajoute au FIXE et aux MAJO + PAN** dans le
-montant à déclarer `K`. Le classeur exporté la porte dans la colonne `G` du bloc
-« Perçu CPAM », à côté de « MAJO + PAN ».
+`A DÉCLARER` peut être **négatif** (IJ retirée supérieure au reconstitué) : le
+signe est conservé, jamais borné à zéro. Les trois taux (`F16`, `L13`, `L23`)
+valent 21 %. La ML35 ne comporte **aucun montant SIACI**.
+
+**Lignes libres** (extension applicative, absente du gabarit d'origine). Comme en
+ML36/ML37, la rémunération se modélise en lignes typées :
+
+- lignes du groupe « base » → s'ajoutent au sous-total `F4` (et donc au FIXE `H`
+  de chaque période) ;
+- lignes du groupe « majorations » → s'ajoutent au total `F7` seulement ; elles
+  n'entrent **pas** dans `I` (qui ne ventile que `F5 + F6`, conformément à la
+  formule du classeur).
+
+À l'export, `F4` et `F7` sont écrits comme totaux (lignes libres incluses) ; les
+lignes libres elles-mêmes occupent la bande vide sous le bloc de référence
+(intitulés `D8:D10`/`F8:F10`, montants `E8:E10`/`G8:G10`).
+
+### 4.1 Attestation d'un dossier ML35
+
+L'attestation lit ses lignes dans le bloc « Perçu CPAM » (lignes 24 à 31) :
+
+| Colonne attestation | Source | Règle |
+|---|---|---|
+| B / C (Du / Au) | `B_r` / `D_r` | dates de la période |
+| D (salaires bruts) | `K_r` | `Congés annuels` si motif = `CA`, sinon le montant `K_r` |
+| E/F, G, H | — | vides (ni PUA, ni autres primes, ni taux — cf. `ANOMALIES.md` §7) |
+
+Identité reprise de la matrice ML35 (`B5`/`B6`/`B3`/`B4`). Les périodes ML36/ML37
+continuent, elles, d'être fusionnées ligne par ligne (ML36 prioritaire).
 
 ---
 

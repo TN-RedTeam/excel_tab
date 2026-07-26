@@ -27,7 +27,7 @@ COLONNES_ML37 = ("N°", "Du", "Au", "Motif", "30ème", "Rétabli", "Perçu",
                  "Cotis. perçu 21%", "Perte", "Cotis. perte 21%",
                  "Déclaré Vivinter", "Dont PUA/PFA", "Autres primes")
 COLONNES_ML35 = ("N°", "Du", "Au", "Motif", "Nb jours", "FIXE", "MAJO + PAN",
-                 "Prime", "IJ à retirer", "Cotis. IJ 21%", "À déclarer",
+                 "IJ à retirer", "Cotis. IJ 21%", "À déclarer",
                  "Cotis. à déclarer 21%")
 
 
@@ -171,7 +171,6 @@ class PageResultats(Page):
                 format_decimal(p.nb_jours, 0),
                 format_euro(p.fixe),
                 format_euro(p.majo_paniers),
-                format_euro(p.prime, vide_si_zero=True),
                 format_euro(p.ij_a_retirer),
                 format_euro(p.ij_taxees),
                 format_euro(p.a_declarer),

@@ -9,22 +9,36 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - **Colonnes de cotisations à 21 %** sur l'étape « Résultats » : le perçu et la
   perte de la ML37, et la retenue d'IJ et le montant à déclarer de la ML35, sont
   désormais accompagnés de leur cotisation.
-- **Prime ML35.** La rubrique « SIACI et primes » de la ML35 se saisit en un
-  champ unique « Prime ». Cette prime est ventilée au prorata des jours ML35,
-  comme les majorations et paniers, et s'ajoute au FIXE et aux MAJO + PAN dans
-  le calcul du montant à déclarer. Une colonne « Prime » apparaît à côté de
-  « MAJO + PAN » dans le détail par période, et dans le bloc « Perçu CPAM » du
-  classeur exporté.
+- **L'attestation Vivinter est branchée sur la ML35.** Un dossier ML35 produisait
+  jusqu'ici une attestation vide. Elle reprend maintenant les périodes du bloc
+  « Perçu CPAM » : dates, montant « À DÉCLARER » (ou « Congés annuels » pour une
+  période CA). Les colonnes Dont PUA/PFA, Autres primes et Taux restent vides
+  (régime d'incapacité totale) — un bandeau d'information le signale et la
+  décision est tracée dans `docs/ANOMALIES.md` (§7).
+- **Lignes libres dans la rémunération ML35**, comme en ML36/ML37 : les lignes
+  du groupe « base » s'ajoutent au sous-total F4, celles du groupe
+  « majorations » au total F7. Chaque ligne a un intitulé saisissable.
 
 ### Modifié
 
-- **Rémunération ML35.** La saisie reprend la structure de la ML36 et de la ML37 :
-  « Base salariale », « Majorations et paniers », « SIACI et primes » puis
-  « Indemnités journalières ». Le champ « IJ / jour » est retiré de l'affichage.
+- **Rémunération ML35** alignée sur la ML36/ML37 : « Base salariale »,
+  « Majorations et primes » puis « Indemnités journalières ». Le champ
+  « IJ / jour » est retiré de l'affichage.
 - L'**adresse mail** de l'attestation ne se tronque plus dans l'aperçu à l'écran :
   sa taille de police s'ajuste pour tenir dans la case.
 - Le **calendrier** s'ouvre partout sur le mois courant, y compris là où il
   s'ouvrait encore sur janvier 1900.
+
+### Corrigé
+
+- Un dossier **ML35 comportant des périodes** ne provoque plus d'erreur
+  d'affichage : la ML35 raisonne en jours calendaires et n'a pas de 30ème, la
+  colonne correspondante reste vide.
+
+### Supprimé
+
+- Le champ **SIACI** pour la ML35 : ce régime n'en comporte aucun dans le
+  classeur. Il ne figure plus ni en saisie, ni dans les calculs, ni à l'export.
 
 ## [1.3.0] — 2026-07-25
 

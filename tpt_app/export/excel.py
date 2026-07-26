@@ -171,7 +171,6 @@ def _remplir_ml35(feuille, saisie, resultat: ResultatML35) -> None:
         "p_transfert": _nombre(saisie.p_transfert),
         "majo": _nombre(saisie.majo),
         "paniers": _nombre(saisie.paniers),
-        "prime": _nombre(saisie.prime),
         "ij_total_tpt": _nombre(saisie.ij_total_tpt),
         "igr": _nombre(saisie.igr),
         "taux_perte": _brut(saisie.taux_perte),
@@ -184,9 +183,18 @@ def _remplir_ml35(feuille, saisie, resultat: ResultatML35) -> None:
         _ecrire(feuille, coordonnee,
                 _brut(valeur) if nom == "jours_ml35" else _nombre(valeur))
 
-    # Intitulés absents du gabarit d'origine pour la prime introduite.
-    _ecrire(feuille, mc.ML35_LIBELLE_PRIME[0], mc.ML35_LIBELLE_PRIME[1])
-    _ecrire(feuille, mc.ML35_LIBELLE_PRIME_CPAM[0], mc.ML35_LIBELLE_PRIME_CPAM[1])
+    # Lignes libres : montants et intitulés, dans la bande laissée vide par le
+    # gabarit. F4 et F7 (écrits ci-dessus) intègrent déjà ces montants.
+    for coordonnee, valeur in zip(mc.ML35_BASES_LIBRES, saisie.bases_libres):
+        _ecrire(feuille, coordonnee, _nombre(valeur))
+    for coordonnee, valeur in zip(mc.ML35_MAJORATIONS_LIBRES, saisie.majorations_libres):
+        _ecrire(feuille, coordonnee, _nombre(valeur))
+    for coordonnee, libelle in zip(mc.ML35_LIBELLES_BASES_LIBRES,
+                                   saisie.libelles_bases_libres):
+        _ecrire(feuille, coordonnee, libelle or None)
+    for coordonnee, libelle in zip(mc.ML35_LIBELLES_MAJORATIONS_LIBRES,
+                                   saisie.libelles_majorations_libres):
+        _ecrire(feuille, coordonnee, libelle or None)
 
     for index, ligne in enumerate(resultat.periodes):
         saisie_ligne = mc.ML35_LIGNE_PERIODE_DEPART + index
@@ -208,7 +216,6 @@ def _remplir_ml35(feuille, saisie, resultat: ResultatML35) -> None:
         _ecrire(feuille, f"F{cpam}", ligne.motif or None)
         _ecrire(feuille, f"H{cpam}", _nombre(ligne.fixe))
         _ecrire(feuille, f"I{cpam}", _nombre(ligne.majo_paniers))
-        _ecrire(feuille, f"{mc.ML35_COLONNE_PRIME_CPAM}{cpam}", _nombre(ligne.prime))
         _ecrire(feuille, f"J{cpam}", _nombre(ligne.ij_a_retirer))
         _ecrire(feuille, f"K{cpam}", _nombre(ligne.a_declarer))
         _ecrire(feuille, f"L{cpam}", _nombre(ligne.a_declarer_taxe))

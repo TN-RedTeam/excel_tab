@@ -276,9 +276,15 @@ class DossierML35:
 
     fixe_100: Decimal = ZERO                  # F2
     p_transfert: Decimal = ZERO               # F3
+    #: Lignes libres du groupe « base », qui s'ajoutent au sous-total F4.
+    bases_libres: list[Decimal] = field(default_factory=lambda: [ZERO, ZERO, ZERO])
+    libelles_bases_libres: list[str] = field(default_factory=lambda: ["", "", ""])
+
     majo: Decimal = ZERO                      # F5
     paniers: Decimal = ZERO                   # F6
-    prime: Decimal = ZERO                     # SIACI et primes, regroupées
+    #: Lignes libres du groupe « majorations », qui s'ajoutent au total F7.
+    majorations_libres: list[Decimal] = field(default_factory=lambda: [ZERO, ZERO, ZERO])
+    libelles_majorations_libres: list[str] = field(default_factory=lambda: ["", "", ""])
 
     ij_total_tpt: Decimal = ZERO              # C17
     igr: Decimal = ZERO                       # D17
@@ -289,13 +295,15 @@ class DossierML35:
 
     @property
     def fixe_plus_transfert(self) -> Decimal:
-        """``F4 = SUM(F2:F3)``."""
-        return dec(self.fixe_100) + dec(self.p_transfert)
+        """``F4 = F2 + F3`` augmenté des lignes de base libres."""
+        return (dec(self.fixe_100) + dec(self.p_transfert)
+                + sum((dec(v) for v in self.bases_libres), ZERO))
 
     @property
     def total_remuneration(self) -> Decimal:
-        """``F7 = SUM(F4:F6)``."""
-        return self.fixe_plus_transfert + dec(self.majo) + dec(self.paniers)
+        """``F7 = F4 + F5 + F6`` augmenté des lignes de majoration libres."""
+        return (self.fixe_plus_transfert + dec(self.majo) + dec(self.paniers)
+                + sum((dec(v) for v in self.majorations_libres), ZERO))
 
 
 @dataclass
@@ -418,7 +426,6 @@ class ResultatPeriodeML35:
     ij_taxees: Decimal = ZERO               # L_(11+n)
     fixe: Decimal = ZERO                    # H_r
     majo_paniers: Decimal = ZERO            # I_r
-    prime: Decimal = ZERO                   # ventilée comme I_r, ajoutée à K_r
     a_declarer: Decimal = ZERO              # K_r
     a_declarer_taxe: Decimal = ZERO         # L_r
 
